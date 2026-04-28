@@ -1,7 +1,7 @@
 # LA REDOUTE SARL-U - Worklog
 
 ## Project Status
-The LA REDOUTE SARL-U website has been fully reconfigured with a proper multi-page architecture. The project is built on Next.js 16 with App Router, Prisma ORM (SQLite), and shadcn/ui.
+The LA REDOUTE SARL-U website has been fully reconfigured with a proper multi-page architecture. The project is built on Next.js 16 with App Router, Prisma ORM (SQLite), and shadcn/ui. Admin is now a full-page dedicated experience with password change capability.
 
 ## Current Architecture
 
@@ -13,7 +13,7 @@ The site uses a **NavigationContext** for client-side page routing with **5 dedi
 4. **À Propos** - About page with stats, history, mission, vision, values
 5. **Contact** - Contact page with form, info cards, bank details, WhatsApp, direct contact
 
-### Product Database (39 Products)
+### Product Database (39+ Products)
 **Automobile (21 products):**
 - Pneus (7): Michelin Energy Saver, Goodyear EfficientGrip, Continental ContiPremiumContact, Pirelli Cinturato P1, Bridgestone Dueler 4x4/SUV, Michelin Agilis Utilitaire, Continental HSR Camion
 - Huiles Moteurs (6): Total Quartz 9000 Energy, Shell Helix Ultra, Motul 8100 X-cess, Castrol GTX, Total Rubia Diesel, ELF Tranself Boîte de Vitesse
@@ -32,9 +32,35 @@ The site uses a **NavigationContext** for client-side page routing with **5 dedi
 
 ### Admin Access
 - Click "Tous droits réservés" in footer or Ctrl+Shift+A
-- Default password: laredoute2024
+- Admin is now a **full-page dedicated experience** (not an overlay)
+- Default password: laredoute2024 (stored in DB, changeable via Settings)
+- Admin sidebar includes: Dashboard, Pages, Products, Images, Partners, **Settings** (new)
 
 ## Completed Work
+
+### Phase 7: Admin Page + Password Change + Upload Fix
+- **Admin as full-page experience**: Admin panel is no longer an overlay - it replaces the entire page when active, making it feel like a dedicated admin page
+- **Password change functionality**: Added SettingsTab component with:
+  - Current password, new password, confirm password fields
+  - Password strength indicator (Weak/Medium/Strong)
+  - Real-time password match validation
+  - Password requirements checklist (6+ chars, uppercase, number, special char)
+  - Success/error feedback messages
+  - Session info card showing last modification time
+- **New API route `/api/auth/change-password`**: 
+  - Requires authentication cookie
+  - Validates current password against DB (with env fallback)
+  - Creates admin user in DB if not exists
+  - Updates password in DB
+- **Updated login API** to check DB password first (then fallback to env variable)
+- **Updated seed route** to create default admin user in DB
+- **Added Settings tab** in AdminSidebar under "SYSTÈME" section
+- **Created `/api/upload` route** (was missing, causing 404 errors on image uploads):
+  - Accepts FormData with file and category
+  - Validates file type (images + PDF) and size (max 10MB)
+  - Saves to `public/uploads/{category}/` with unique filename
+  - Returns URL path for use in product/image/partner forms
+- **DashboardTab quick actions** now navigate to correct tabs (products, images, partners)
 
 ### Phase 6: Automobile Product Images & Admin Interface Redesign
 - Generated 13 new professional automobile product images without watermarks on white background
@@ -58,17 +84,32 @@ The site uses a **NavigationContext** for client-side page routing with **5 dedi
 - Phase 4: Multi-Page Architecture (NavigationContext, per-page content management)
 - Phase 5: Product Integration & Professional Design (39 products, ProductDetailDialog, contact details)
 
+## Verification Results (Phase 7)
+- ✅ Admin login works (cookie-based auth)
+- ✅ Admin appears as full-page dedicated experience
+- ✅ Product CRUD operations work (GET, POST, PUT, DELETE all return 200)
+- ✅ Product update via API confirmed (tested with curl)
+- ✅ Password change works via API (tested with curl)
+- ✅ Old password correctly rejected after change
+- ✅ New password works for login after change
+- ✅ File upload API works (images save correctly to public/uploads/)
+- ✅ File type validation works (rejects non-image files)
+- ✅ Settings page renders correctly in browser
+- ✅ Password change works via UI (tested with agent-browser)
+- ✅ Dashboard quick actions navigate to correct tabs
+- ✅ Lint passes with no errors
+- ✅ No 404 errors in dev logs
+
 ## Unresolved Issues
 - Contact form doesn't actually send emails (simulated)
-- No real user authentication system
 - File upload doesn't compress/optimize images
 - No drag-and-drop reordering for admin
-- No product image upload integrated with products
-- Admin quick action buttons don't navigate to specific tabs yet
+- No bulk actions in admin (activate/deactivate multiple items)
+- Agro-alimentaire products may need to be replaced with user's actual product list (pending user input)
 
 ## Next Phase Priorities
-1. Make admin quick actions navigate to specific tabs
-2. Add Framer Motion page transitions
-3. Add search across all products (global search)
-4. Add product image upload integrated with products
-5. Add bulk actions in admin (activate/deactivate multiple items)
+1. Add Framer Motion page transitions
+2. Add search across all products (global search)
+3. Add bulk actions in admin (activate/deactivate multiple items)
+4. Replace agro-alimentaire products when user provides their list
+5. Improve mobile responsiveness of admin interface
