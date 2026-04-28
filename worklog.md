@@ -124,13 +124,27 @@ The site uses a **NavigationContext** for client-side page routing with **5 dedi
   - Automobile: Professional showroom image with tires and motor oil (`/auto-category-new.png`)
   - Agro-alimentaire: Premium food products display with rice, pasta, and oil (`/agro-category-new.png`)
 - **Updated database** with new image URLs via API (PUT /api/images)
-- **Git status**: All changes committed (13 commits total on main branch)
-- **No git remote configured** — user needs to add remote before pushing
+- **Git status**: All changes committed and pushed to GitHub
+- **Remote**: https://github.com/blunaantoine/laredoute.git (main branch)
+- **Force pushed** to replace old codebase (27 old commits) with new architecture (14 commits)
+- **Token removed from remote URL** for security
 - **QA verified**: All pages functional, no errors, both category images display correctly
 - **Lint**: Passes with no errors
 
+### Phase 10: Git Push to Production Repository
+- **Configured remote**: `origin` → `https://github.com/blunaantoine/laredoute.git`
+- **Force pushed** to main branch (old codebase had 27 commits, replaced with new 14-commit architecture)
+- **Token removed** from remote URL for security
+- **Deployment workflow on server** (`/var/www/laredoutesarl`):
+  ```bash
+  git pull origin main
+  bun run build
+  pm2 restart laredoutesarl
+  pm2 logs laredoutesarl --lines 10
+  ```
+
 ## Next Phase Priorities
-1. **User action needed**: Add git remote and push (`git remote add origin <URL> && git push -u origin main`)
+1. Deploy on production server (`cd /var/www/laredoutesarl && git pull origin main && bun run build && pm2 restart laredoutesarl`)
 2. Add Framer Motion page transitions
 3. Add search across all products (global search)
 4. Add bulk actions in admin (activate/deactivate multiple items)
