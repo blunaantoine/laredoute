@@ -3,7 +3,21 @@ import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { existsSync } from 'fs'
 
+function checkAuth(request: NextRequest): NextResponse | null {
+  const authCookie = request.cookies.get('laredoute-admin-v2')
+  if (!authCookie || authCookie.value.length < 10) {
+    return NextResponse.json(
+      { error: 'Non autorisé. Veuillez vous reconnecter.' },
+      { status: 401 }
+    )
+  }
+  return null // Auth OK
+}
+
 export async function POST(request: NextRequest) {
+  const authError = checkAuth(request)
+  if (authError) return authError
+
   try {
     const formData = await request.formData()
     const file = formData.get('file') as File | null
@@ -62,9 +76,9 @@ export async function POST(request: NextRequest) {
       type: file.type,
     })
   } catch (error) {
-    console.error('Upload error:', error)
+    console.error('[Upload API] POST error:', error)
     return NextResponse.json(
-      { success: false, error: 'Erreur lors du téléchargement du fichier' },
+      { success: false, error: 'Erreur lors du téléchargement du fichier', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }

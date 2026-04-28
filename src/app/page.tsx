@@ -52,16 +52,19 @@ function SiteContent() {
   const [images, setImages] = useState<Record<string, string>>({})
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
-  const [seeded, setSeeded] = useState(false)
-
-  // Seed database on first load
+  // Seed database only once ever (using localStorage to persist across refreshes)
   useEffect(() => {
-    if (!seeded) {
+    const hasSeeded = localStorage.getItem('laredoute-seeded')
+    if (!hasSeeded) {
       fetch('/api/seed', { method: 'POST' })
-        .then(() => setSeeded(true))
+        .then((res) => res.json())
+        .then((data) => {
+          localStorage.setItem('laredoute-seeded', 'true')
+          console.log('[Seed] Database seeded:', data)
+        })
         .catch(console.error)
     }
-  }, [seeded])
+  }, [])
 
   // Fetch site data
   const fetchData = useCallback(async () => {

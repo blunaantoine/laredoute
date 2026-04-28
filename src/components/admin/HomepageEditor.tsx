@@ -99,8 +99,8 @@ export default function HomepageEditor() {
   const fetchData = useCallback(async () => {
     try {
       const [contentRes, imagesRes] = await Promise.all([
-        fetch('/api/content'),
-        fetch('/api/images'),
+        fetch('/api/content', { credentials: 'include' }),
+        fetch('/api/images', { credentials: 'include' }),
       ])
       const contentData = await contentRes.json()
       const imageData = await imagesRes.json()
@@ -129,13 +129,15 @@ export default function HomepageEditor() {
       const res = await fetch('/api/content', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ key, content: editedContents[key] }),
       })
       if (res.ok) {
         toast({ title: 'Contenu sauvegardé', description: `Le contenu "${key}" a été mis à jour.` })
         fetchData()
       } else {
-        toast({ title: 'Erreur', description: 'Impossible de sauvegarder.', variant: 'destructive' })
+        const errorData = await res.json().catch(() => ({}))
+        toast({ title: 'Erreur', description: errorData.error || 'Impossible de sauvegarder.', variant: 'destructive' })
       }
     } catch {
       toast({ title: 'Erreur', description: 'Erreur de connexion.', variant: 'destructive' })
@@ -154,6 +156,7 @@ export default function HomepageEditor() {
       const res = await fetch('/api/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           key: newContent.key,
           category: newContent.category,
@@ -176,7 +179,7 @@ export default function HomepageEditor() {
   const handleDeleteContent = async (key: string) => {
     if (!confirm(`Supprimer le contenu "${key}" ?`)) return
     try {
-      const res = await fetch(`/api/content?key=${key}`, { method: 'DELETE' })
+      const res = await fetch(`/api/content?key=${key}`, { method: 'DELETE', credentials: 'include' })
       if (res.ok) {
         toast({ title: 'Contenu supprimé' })
         fetchData()
@@ -198,13 +201,14 @@ export default function HomepageEditor() {
         const formData = new FormData()
         formData.append('file', uploadFile)
         formData.append('category', newImage.category)
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData, credentials: 'include' })
         const uploadData = await uploadRes.json()
         if (uploadData.success) imageUrl = uploadData.url
       }
       const res = await fetch('/api/images', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           key: newImage.key,
           category: newImage.category,
@@ -231,7 +235,7 @@ export default function HomepageEditor() {
   const handleDeleteImage = async (id: string) => {
     if (!confirm('Supprimer cette image ?')) return
     try {
-      const res = await fetch(`/api/images?id=${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/images?id=${id}`, { method: 'DELETE', credentials: 'include' })
       if (res.ok) {
         toast({ title: 'Image supprimée' })
         fetchData()
@@ -250,13 +254,14 @@ export default function HomepageEditor() {
         const formData = new FormData()
         formData.append('file', editFile)
         formData.append('category', editingImage.category)
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData, credentials: 'include' })
         const uploadData = await uploadRes.json()
         if (uploadData.success) imageUrl = uploadData.url
       }
       const res = await fetch('/api/images', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           id: editingImage.id,
           imageUrl,
@@ -271,7 +276,8 @@ export default function HomepageEditor() {
         setEditFile(null)
         fetchData()
       } else {
-        toast({ title: 'Erreur', description: 'Impossible de mettre à jour l\'image.', variant: 'destructive' })
+        const errorData = await res.json().catch(() => ({}))
+        toast({ title: 'Erreur', description: errorData.error || 'Impossible de mettre à jour l\'image.', variant: 'destructive' })
       }
     } catch {
       toast({ title: 'Erreur', variant: 'destructive' })

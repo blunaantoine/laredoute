@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
+function checkAuth(request: NextRequest): NextResponse | null {
+  const authCookie = request.cookies.get('laredoute-admin-v2')
+  if (!authCookie || authCookie.value.length < 10) {
+    return NextResponse.json(
+      { error: 'Non autorisé. Veuillez vous reconnecter.' },
+      { status: 401 }
+    )
+  }
+  return null // Auth OK
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -30,15 +41,19 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'asc' },
     })
     return NextResponse.json(contents)
-  } catch {
+  } catch (error) {
+    console.error('[Content API] GET error:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la récupération du contenu' },
+      { error: 'Erreur lors de la récupération du contenu', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }
 }
 
 export async function POST(request: NextRequest) {
+  const authError = checkAuth(request)
+  if (authError) return authError
+
   try {
     const body = await request.json()
     const { key, category, title, content } = body
@@ -55,15 +70,19 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json(siteContent, { status: 201 })
-  } catch {
+  } catch (error) {
+    console.error('[Content API] POST error:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la création du contenu' },
+      { error: 'Erreur lors de la création du contenu', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }
 }
 
 export async function PUT(request: NextRequest) {
+  const authError = checkAuth(request)
+  if (authError) return authError
+
   try {
     const body = await request.json()
     const { id, key, ...data } = body
@@ -83,15 +102,19 @@ export async function PUT(request: NextRequest) {
     })
 
     return NextResponse.json(updated)
-  } catch {
+  } catch (error) {
+    console.error('[Content API] PUT error:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la mise à jour du contenu' },
+      { error: 'Erreur lors de la mise à jour du contenu', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }
 }
 
 export async function DELETE(request: NextRequest) {
+  const authError = checkAuth(request)
+  if (authError) return authError
+
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
@@ -109,9 +132,10 @@ export async function DELETE(request: NextRequest) {
     await db.siteContent.delete({ where: whereClause })
 
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error('[Content API] DELETE error:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la suppression du contenu' },
+      { error: 'Erreur lors de la suppression du contenu', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }

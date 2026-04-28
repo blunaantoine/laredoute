@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
+function checkAuth(request: NextRequest): NextResponse | null {
+  const authCookie = request.cookies.get('laredoute-admin-v2')
+  if (!authCookie || authCookie.value.length < 10) {
+    return NextResponse.json(
+      { error: 'Non autorisé. Veuillez vous reconnecter.' },
+      { status: 401 }
+    )
+  }
+  return null // Auth OK
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -34,15 +45,19 @@ export async function GET(request: NextRequest) {
       orderBy: [{ category: 'asc' }, { order: 'asc' }],
     })
     return NextResponse.json(products)
-  } catch {
+  } catch (error) {
+    console.error('[Products API] GET error:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la récupération des produits' },
+      { error: 'Erreur lors de la récupération des produits', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }
 }
 
 export async function POST(request: NextRequest) {
+  const authError = checkAuth(request)
+  if (authError) return authError
+
   try {
     const body = await request.json()
     const { category, subcategory, title, description, imageUrl, variants, order } = body
@@ -59,15 +74,19 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json(product, { status: 201 })
-  } catch {
+  } catch (error) {
+    console.error('[Products API] POST error:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la création du produit' },
+      { error: 'Erreur lors de la création du produit', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }
 }
 
 export async function PUT(request: NextRequest) {
+  const authError = checkAuth(request)
+  if (authError) return authError
+
   try {
     const body = await request.json()
     const { id, ...data } = body
@@ -85,15 +104,19 @@ export async function PUT(request: NextRequest) {
     })
 
     return NextResponse.json(updated)
-  } catch {
+  } catch (error) {
+    console.error('[Products API] PUT error:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la mise à jour du produit' },
+      { error: 'Erreur lors de la mise à jour du produit', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }
 }
 
 export async function DELETE(request: NextRequest) {
+  const authError = checkAuth(request)
+  if (authError) return authError
+
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
@@ -112,9 +135,10 @@ export async function DELETE(request: NextRequest) {
     })
 
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error('[Products API] DELETE error:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la suppression du produit' },
+      { error: 'Erreur lors de la suppression du produit', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }

@@ -420,7 +420,6 @@ export async function POST() {
     let contentCreated = 0
     let imagesCreated = 0
     let productsCreated = 0
-    let productsUpdated = 0
 
     // Seed default admin user if not exists
     const existingAdmin = await db.user.findFirst({ where: { role: 'admin' } })
@@ -453,7 +452,8 @@ export async function POST() {
       }
     }
 
-    // Seed Products - create if not exists, update imageUrl if exists
+    // Seed Products - ONLY create if not exists, NEVER update existing data
+    // (prevents overwriting admin changes to product images/details)
     for (const item of DEFAULT_PRODUCTS) {
       const existing = await db.product.findFirst({
         where: {
@@ -465,14 +465,9 @@ export async function POST() {
       if (!existing) {
         await db.product.create({ data: item })
         productsCreated++
-      } else if (item.imageUrl && existing.imageUrl !== item.imageUrl) {
-        // Update existing product with new image URL
-        await db.product.update({
-          where: { id: existing.id },
-          data: { imageUrl: item.imageUrl },
-        })
-        productsUpdated++
       }
+      // Removed: no longer update imageUrl on existing products
+      // This was overwriting admin changes every time seed ran
     }
 
     return NextResponse.json({
@@ -480,12 +475,12 @@ export async function POST() {
       contentCreated,
       imagesCreated,
       productsCreated,
-      productsUpdated,
       totalCreated: contentCreated + imagesCreated + productsCreated,
     })
-  } catch {
+  } catch (error) {
+    console.error('[Seed] Error seeding database:', error)
     return NextResponse.json(
-      { error: 'Erreur lors du seed de la base de données' },
+      { error: 'Erreur lors du seed de la base de données', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }

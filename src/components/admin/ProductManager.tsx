@@ -103,7 +103,7 @@ export default function ProductManager() {
 
   const fetchProducts = useCallback(async () => {
     try {
-      const res = await fetch('/api/products?all=true')
+      const res = await fetch('/api/products?all=true', { credentials: 'include' })
       const data = await res.json()
       setProducts(Array.isArray(data) ? data : [])
     } catch (error) {
@@ -130,7 +130,7 @@ export default function ProductManager() {
         const formData = new FormData()
         formData.append('file', form.imageFile)
         formData.append('category', form.subcategory)
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData, credentials: 'include' })
         const uploadData = await uploadRes.json()
         if (uploadData.success) {
           imageUrl = uploadData.url
@@ -140,6 +140,7 @@ export default function ProductManager() {
       const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           category: form.subcategory,
           subcategory: form.mainCategory,
@@ -177,7 +178,7 @@ export default function ProductManager() {
         const formData = new FormData()
         formData.append('file', editForm.imageFile)
         formData.append('category', 'edit-product')
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData, credentials: 'include' })
         const uploadData = await uploadRes.json()
         if (uploadData.success) {
           imageUrl = uploadData.url
@@ -187,6 +188,7 @@ export default function ProductManager() {
       const res = await fetch('/api/products', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           id: editingProduct.id,
           category: editForm.subcategory,
@@ -204,7 +206,8 @@ export default function ProductManager() {
         setEditingProduct(null)
         fetchProducts()
       } else {
-        toast({ title: 'Erreur', description: 'Impossible de modifier le produit.', variant: 'destructive' })
+        const errorData = await res.json().catch(() => ({}))
+        toast({ title: 'Erreur', description: errorData.error || 'Impossible de modifier le produit.', variant: 'destructive' })
       }
     } catch {
       toast({ title: 'Erreur', description: 'Erreur de connexion.', variant: 'destructive' })
@@ -216,7 +219,7 @@ export default function ProductManager() {
   const handleDeleteProduct = async (id: string) => {
     if (!confirm('Supprimer ce produit ?')) return
     try {
-      const res = await fetch(`/api/products?id=${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/products?id=${id}`, { method: 'DELETE', credentials: 'include' })
       if (res.ok) {
         toast({ title: 'Produit supprimé' })
         fetchProducts()
@@ -231,6 +234,7 @@ export default function ProductManager() {
       const res = await fetch('/api/products', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           id: product.id,
           isActive: !product.isActive,
