@@ -38,6 +38,18 @@ The site uses a **NavigationContext** for client-side page routing with **5 dedi
 
 ## Completed Work
 
+### Phase 8: Editable Homepage Category Images + Image Editor
+- **Added 2 editable images to seed data**: `auto-category` (Automobile card) and `agro-category` (Agro-alimentaire card) in the "product" category
+- **Updated AccueilPage** to use `images['auto-category']` and `images['agro-category']` from the database instead of hardcoded paths (with fallbacks to `/products-tires.png` and `/products-food.png`)
+- **Enhanced HomepageEditor image management**:
+  - Added "Modifier" (Edit) button for each image alongside the existing "Supprimer" (Delete) button
+  - Edit mode shows file upload input, Save and Cancel buttons
+  - Image update goes through `/api/upload` (for new file) then `/api/images` PUT (for DB update)
+  - Better image card layout with description display
+- **Verified**: Both images appear in admin under "Produits" category with edit capability
+- **Verified**: Image update via API works (PUT /api/images returns 200)
+- **Verified**: Homepage correctly loads images from database
+
 ### Phase 7: Admin Page + Password Change + Upload Fix
 - **Admin as full-page experience**: Admin panel is no longer an overlay - it replaces the entire page when active, making it feel like a dedicated admin page
 - **Password change functionality**: Added SettingsTab component with:

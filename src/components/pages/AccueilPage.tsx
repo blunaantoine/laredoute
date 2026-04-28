@@ -173,7 +173,7 @@ export default function AccueilPage({ content, images, products }: AccueilPagePr
             <Card className="overflow-hidden card-hover border-0 shadow-lg">
               <div className="relative h-64 overflow-hidden">
                 <Image
-                  src="/products-tires.png"
+                  src={images['auto-category'] || '/products-tires.png'}
                   alt="Automobile"
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
@@ -218,7 +218,7 @@ export default function AccueilPage({ content, images, products }: AccueilPagePr
             <Card className="overflow-hidden card-hover border-0 shadow-lg">
               <div className="relative h-64 overflow-hidden">
                 <Image
-                  src="/products-food.png"
+                  src={images['agro-category'] || '/products-food.png'}
                   alt="Agro-alimentaire"
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"

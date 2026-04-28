@@ -32,6 +32,8 @@ const DEFAULT_IMAGES = [
   { key: 'logo-alt', category: 'logo', title: 'Logo Alternatif', imageUrl: '/logo-alt.png' },
   { key: 'hero-background', category: 'hero', title: 'Arrière-plan Hero', imageUrl: '/pattern.png' },
   { key: 'about-team', category: 'about', title: 'Photo Équipe', imageUrl: '/about-team.png' },
+  { key: 'auto-category', category: 'product', title: 'Image Catégorie Automobile', description: 'Image de la carte Automobile sur la page d\'accueil', imageUrl: '/products-tires.png', altText: 'Automobile', order: 1 },
+  { key: 'agro-category', category: 'product', title: 'Image Catégorie Agro-alimentaire', description: 'Image de la carte Agro-alimentaire sur la page d\'accueil', imageUrl: '/products-food.png', altText: 'Agro-alimentaire', order: 2 },
 ]
 
 // Individual product images (automobile - clean, no watermark)

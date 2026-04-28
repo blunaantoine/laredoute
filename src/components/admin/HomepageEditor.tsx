@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Loader2, Save, FileText, Image as ImageIcon, Plus, Trash2 } from 'lucide-react'
+import { Loader2, Save, FileText, Image as ImageIcon, Plus, Trash2, Pencil, Upload } from 'lucide-react'
 import Image from 'next/image'
 import { useToast } from '@/hooks/use-toast'
 
@@ -90,6 +90,11 @@ export default function HomepageEditor() {
   })
   const [uploadFile, setUploadFile] = useState<File | null>(null)
   const [addingImage, setAddingImage] = useState(false)
+
+  // Edit image state
+  const [editingImage, setEditingImage] = useState<SiteImage | null>(null)
+  const [editFile, setEditFile] = useState<File | null>(null)
+  const [savingImage, setSavingImage] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
     try {
@@ -233,6 +238,45 @@ export default function HomepageEditor() {
       }
     } catch {
       toast({ title: 'Erreur', variant: 'destructive' })
+    }
+  }
+
+  const handleSaveImage = async () => {
+    if (!editingImage) return
+    setSavingImage(editingImage.id)
+    try {
+      let imageUrl = editingImage.imageUrl
+      if (editFile) {
+        const formData = new FormData()
+        formData.append('file', editFile)
+        formData.append('category', editingImage.category)
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+        const uploadData = await uploadRes.json()
+        if (uploadData.success) imageUrl = uploadData.url
+      }
+      const res = await fetch('/api/images', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingImage.id,
+          imageUrl,
+          title: editingImage.title,
+          description: editingImage.description,
+          altText: editingImage.altText,
+        }),
+      })
+      if (res.ok) {
+        toast({ title: 'Image mise à jour', description: `"${editingImage.title}" a été modifiée.` })
+        setEditingImage(null)
+        setEditFile(null)
+        fetchData()
+      } else {
+        toast({ title: 'Erreur', description: 'Impossible de mettre à jour l\'image.', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Erreur', variant: 'destructive' })
+    } finally {
+      setSavingImage(null)
     }
   }
 
@@ -488,19 +532,76 @@ export default function HomepageEditor() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {catImages.map((image) => (
                       <div key={image.id} className="group border border-gray-100 rounded-lg overflow-hidden hover:border-gray-200 transition-colors">
                         <div className="relative aspect-video bg-gray-50">
                           <Image src={image.imageUrl} alt={image.altText || image.title} fill className="object-cover" unoptimized />
                         </div>
-                        <div className="p-2.5">
-                          <p className="font-medium text-xs truncate">{image.title}</p>
+                        <div className="p-3 space-y-2">
+                          <p className="font-medium text-sm truncate">{image.title}</p>
                           <p className="text-[10px] text-gray-400 truncate">{image.key}</p>
-                          <Button variant="destructive" size="sm" onClick={() => handleDeleteImage(image.id)} className="w-full mt-2 h-7 text-xs gap-1">
-                            <Trash2 className="size-3" />
-                            Supprimer
-                          </Button>
+                          {image.description && (
+                            <p className="text-[11px] text-gray-500 truncate">{image.description}</p>
+                          )}
+
+                          {/* Edit mode for this image */}
+                          {editingImage?.id === image.id ? (
+                            <div className="space-y-2 pt-2 border-t border-gray-100">
+                              <div className="space-y-1">
+                                <Label className="text-[10px] text-gray-500">Nouvelle image</Label>
+                                <Input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => setEditFile(e.target.files?.[0] || null)}
+                                  className="text-xs h-8"
+                                />
+                              </div>
+                              <div className="flex gap-1.5">
+                                <Button
+                                  size="sm"
+                                  onClick={handleSaveImage}
+                                  disabled={savingImage === image.id}
+                                  className="bg-[#00A651] hover:bg-[#008541] h-7 text-xs gap-1 flex-1"
+                                >
+                                  {savingImage === image.id ? (
+                                    <Loader2 className="size-3 animate-spin" />
+                                  ) : (
+                                    <Upload className="size-3" />
+                                  )}
+                                  Sauvegarder
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => { setEditingImage(null); setEditFile(null) }}
+                                  className="h-7 text-xs"
+                                >
+                                  Annuler
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex gap-1.5 pt-1">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setEditingImage(image)}
+                                className="flex-1 h-7 text-xs gap-1"
+                              >
+                                <Pencil className="size-3" />
+                                Modifier
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDeleteImage(image.id)}
+                                className="h-7 text-xs gap-1"
+                              >
+                                <Trash2 className="size-3" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
