@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Wheat, UtensilsCrossed, GlassWater, Sprout, Search, ArrowLeft, ChevronLeft, ArrowRight } from 'lucide-react'
+import { Wheat, UtensilsCrossed, Droplets, Search, ArrowLeft, ChevronLeft, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import { useNavigation } from '@/context/NavigationContext'
 import ProductDetailDialog from '@/components/shared/ProductDetailDialog'
@@ -28,15 +28,15 @@ interface AgroalimentairePageProps {
 }
 
 const subcategoryConfig = [
-  { value: 'alimentation', label: 'Produits Alimentaires', icon: UtensilsCrossed, description: 'Riz, sucre, farine, huile, pâtes, conserves' },
-  { value: 'boissons', label: 'Boissons', icon: GlassWater, description: 'Eau, jus, café, sodas' },
-  { value: 'cereales', label: 'Céréales & Grains', icon: Sprout, description: 'Maïs, mil, sorgho, soja, niébé' },
+  { value: 'riz', label: 'Riz', icon: Wheat, description: 'Riz parfumé, long grain, brisé' },
+  { value: 'pates', label: 'Pâtes Alimentaires', icon: UtensilsCrossed, description: 'Spaghetti et pâtes de qualité' },
+  { value: 'huiles-alimentaires', label: 'Huiles Alimentaires', icon: Droplets, description: 'Huile de tournesol raffinée' },
 ]
 
 const categoryLabels: Record<string, string> = {
-  alimentation: 'Produits Alimentaires',
-  boissons: 'Boissons',
-  cereales: 'Céréales & Grains',
+  riz: 'Riz',
+  pates: 'Pâtes Alimentaires',
+  'huiles-alimentaires': 'Huiles Alimentaires',
 }
 
 export default function AgroalimentairePage({ content, products }: AgroalimentairePageProps) {
@@ -93,7 +93,7 @@ export default function AgroalimentairePage({ content, products }: Agroalimentai
             </div>
           </div>
           <p className="text-white/80 text-lg max-w-2xl">
-            {content['agro-description'] || 'Distribution de produits alimentaires de qualité, boissons et céréales.'}
+            {content['agro-description'] || 'Distribution de riz, pâtes alimentaires et huiles de qualité.'}
           </p>
         </div>
       </section>
@@ -269,9 +269,9 @@ export default function AgroalimentairePage({ content, products }: Agroalimentai
 
 function AgroProductCard({ product, onClick }: { product: Product; onClick: () => void }) {
   const categoryLabels: Record<string, string> = {
-    alimentation: 'Produits Alimentaires',
-    boissons: 'Boissons',
-    cereales: 'Céréales & Grains',
+    riz: 'Riz',
+    pates: 'Pâtes Alimentaires',
+    'huiles-alimentaires': 'Huiles Alimentaires',
   }
 
   const variantList = product.variants ? product.variants.split(',').map(v => v.trim()) : []
@@ -287,7 +287,7 @@ function AgroProductCard({ product, onClick }: { product: Product; onClick: () =
             src={product.imageUrl}
             alt={product.title}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            className="object-contain group-hover:scale-105 transition-transform duration-300 bg-white"
             unoptimized
           />
         ) : (

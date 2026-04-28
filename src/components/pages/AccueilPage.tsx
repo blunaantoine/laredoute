@@ -49,9 +49,9 @@ const categoryLabels: Record<string, string> = {
   pneus: 'Pneus',
   huiles: 'Huiles Moteurs',
   accessoires: 'Accessoires Auto',
-  alimentation: 'Produits Alimentaires',
-  boissons: 'Boissons',
-  cereales: 'Céréales & Grains',
+  riz: 'Riz',
+  pates: 'Pâtes Alimentaires',
+  'huiles-alimentaires': 'Huiles Alimentaires',
 }
 
 export default function AccueilPage({ content, images, products }: AccueilPageProps) {
@@ -243,9 +243,9 @@ export default function AccueilPage({ content, images, products }: AccueilPagePr
                     </Badge>
                   )) : (
                     <>
-                      <Badge variant="secondary" className="bg-[#00A651]/10 text-[#00A651]">Alimentation</Badge>
-                      <Badge variant="secondary" className="bg-[#00A651]/10 text-[#00A651]">Boissons</Badge>
-                      <Badge variant="secondary" className="bg-[#00A651]/10 text-[#00A651]">Céréales</Badge>
+                      <Badge variant="secondary" className="bg-[#00A651]/10 text-[#00A651]">Riz</Badge>
+                      <Badge variant="secondary" className="bg-[#00A651]/10 text-[#00A651]">Pâtes</Badge>
+                      <Badge variant="secondary" className="bg-[#00A651]/10 text-[#00A651]">Huiles</Badge>
                     </>
                   )}
                 </div>
