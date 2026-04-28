@@ -3,9 +3,9 @@ import { db } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if authenticated
-    const authCookie = request.cookies.get('admin-auth')
-    if (!authCookie || authCookie.value !== 'authenticated') {
+    // Check if authenticated (using v2 cookie name)
+    const authCookie = request.cookies.get('laredoute-admin-v2')
+    if (!authCookie || authCookie.value.length < 10) {
       return NextResponse.json(
         { success: false, error: 'Non autorisé' },
         { status: 401 }
