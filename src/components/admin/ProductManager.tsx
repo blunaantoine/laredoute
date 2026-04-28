@@ -7,8 +7,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Loader2, Plus, Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Loader2, Plus, Pencil, Trash2, Search, Car, Wheat, SlidersHorizontal, Package } from 'lucide-react'
 import Image from 'next/image'
 import { useToast } from '@/hooks/use-toast'
 
@@ -25,8 +27,8 @@ interface Product {
 }
 
 const mainCategories = [
-  { value: 'automobile', label: 'Automobile' },
-  { value: 'agroalimentaire', label: 'Agro-alimentaire' },
+  { value: 'automobile', label: 'Automobile', icon: Car },
+  { value: 'agroalimentaire', label: 'Agro-alimentaire', icon: Wheat },
 ]
 
 const subcategories: Record<string, { value: string; label: string }[]> = {
@@ -36,9 +38,9 @@ const subcategories: Record<string, { value: string; label: string }[]> = {
     { value: 'accessoires', label: 'Accessoires Auto' },
   ],
   agroalimentaire: [
-    { value: 'alimentation', label: 'Produits Alimentaires' },
-    { value: 'boissons', label: 'Boissons' },
-    { value: 'cereales', label: 'Céréales & Grains' },
+    { value: 'riz', label: 'Riz' },
+    { value: 'pates', label: 'Pâtes Alimentaires' },
+    { value: 'huiles-alimentaires', label: 'Huiles Alimentaires' },
   ],
 }
 
@@ -46,9 +48,24 @@ const categoryLabels: Record<string, string> = {
   pneus: 'Pneus',
   huiles: 'Huiles Moteurs',
   accessoires: 'Accessoires Auto',
+  riz: 'Riz',
+  pates: 'Pâtes Alimentaires',
+  'huiles-alimentaires': 'Huiles Alimentaires',
   alimentation: 'Produits Alimentaires',
   boissons: 'Boissons',
   cereales: 'Céréales & Grains',
+}
+
+const categoryColors: Record<string, string> = {
+  pneus: 'bg-[#00A651]/10 text-[#00A651]',
+  huiles: 'bg-emerald-50 text-emerald-600',
+  accessoires: 'bg-teal-50 text-teal-600',
+  riz: 'bg-amber-50 text-amber-600',
+  pates: 'bg-orange-50 text-orange-600',
+  'huiles-alimentaires': 'bg-yellow-50 text-yellow-700',
+  alimentation: 'bg-amber-50 text-amber-600',
+  boissons: 'bg-sky-50 text-sky-600',
+  cereales: 'bg-lime-50 text-lime-600',
 }
 
 interface ProductForm {
@@ -76,6 +93,8 @@ export default function ProductManager() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState<ProductForm>({ ...emptyForm })
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeFilter, setActiveFilter] = useState<string>('all')
 
   // Edit dialog
   const [editDialogOpen, setEditDialogOpen] = useState(false)
@@ -207,6 +226,25 @@ export default function ProductManager() {
     }
   }
 
+  const handleToggleActive = async (product: Product) => {
+    try {
+      const res = await fetch('/api/products', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: product.id,
+          isActive: !product.isActive,
+        }),
+      })
+      if (res.ok) {
+        toast({ title: product.isActive ? 'Produit désactivé' : 'Produit activé' })
+        fetchProducts()
+      }
+    } catch {
+      toast({ title: 'Erreur', description: 'Impossible de modifier.', variant: 'destructive' })
+    }
+  }
+
   const openEditDialog = (product: Product) => {
     setEditingProduct(product)
     const mainCat = product.subcategory || 'automobile'
@@ -225,6 +263,19 @@ export default function ProductManager() {
   const autoProducts = products.filter((p) => p.subcategory === 'automobile')
   const agroProducts = products.filter((p) => p.subcategory === 'agroalimentaire')
 
+  // Filter products based on search and active filter
+  const getFilteredProducts = (productList: Product[]) => {
+    return productList.filter(p => {
+      const matchesSearch = searchQuery === '' ||
+        p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
+      const matchesActive = activeFilter === 'all' ||
+        (activeFilter === 'active' && p.isActive) ||
+        (activeFilter === 'inactive' && !p.isActive)
+      return matchesSearch && matchesActive
+    })
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -235,32 +286,33 @@ export default function ProductManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header with actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-[#1a1a1a]">Produits</h1>
-          <p className="text-gray-500 mt-1">Gérez vos produits</p>
+          <p className="text-gray-500 mt-1 text-sm">{products.length} produits au total</p>
         </div>
         <Button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="bg-[#00A651] hover:bg-[#008541]"
+          className="bg-[#00A651] hover:bg-[#008541] gap-2"
         >
-          {showAddForm ? <ChevronUp className="size-4 mr-2" /> : <Plus className="size-4 mr-2" />}
-          Ajouter un produit
+          <Plus className="size-4" />
+          Nouveau produit
         </Button>
       </div>
 
       {/* Add Product Form */}
       {showAddForm && (
-        <Card className="border-0 shadow-md">
-          <CardHeader>
-            <CardTitle className="text-lg">Nouveau produit</CardTitle>
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold">Nouveau produit</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Catégorie principale</Label>
+                <Label className="text-sm">Catégorie principale</Label>
                 <select
-                  className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                  className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm focus:border-[#00A651] focus:ring-[#00A651]/20"
                   value={form.mainCategory}
                   onChange={(e) => {
                     const mainCat = e.target.value
@@ -277,9 +329,9 @@ export default function ProductManager() {
                 </select>
               </div>
               <div className="space-y-2">
-                <Label>Sous-catégorie</Label>
+                <Label className="text-sm">Sous-catégorie</Label>
                 <select
-                  className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                  className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm focus:border-[#00A651] focus:ring-[#00A651]/20"
                   value={form.subcategory}
                   onChange={(e) => setForm({ ...form, subcategory: e.target.value })}
                 >
@@ -289,32 +341,35 @@ export default function ProductManager() {
                 </select>
               </div>
               <div className="space-y-2">
-                <Label>Titre *</Label>
+                <Label className="text-sm">Titre *</Label>
                 <Input
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
                   placeholder="Nom du produit"
+                  className="focus:border-[#00A651] focus:ring-[#00A651]/20"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Variants (séparés par des virgules)</Label>
+                <Label className="text-sm">Variants (séparés par des virgules)</Label>
                 <Input
                   value={form.variants}
                   onChange={(e) => setForm({ ...form, variants: e.target.value })}
                   placeholder="ex: 195/65R15, 205/55R16"
+                  className="focus:border-[#00A651] focus:ring-[#00A651]/20"
                 />
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label>Description</Label>
+                <Label className="text-sm">Description</Label>
                 <Textarea
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   placeholder="Description du produit"
                   rows={3}
+                  className="focus:border-[#00A651] focus:ring-[#00A651]/20"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Image</Label>
+                <Label className="text-sm">Image</Label>
                 <Input
                   type="file"
                   accept="image/*"
@@ -322,123 +377,84 @@ export default function ProductManager() {
                 />
               </div>
             </div>
-            <Button
-              onClick={handleAddProduct}
-              disabled={saving}
-              className="bg-[#00A651] hover:bg-[#008541]"
-            >
-              {saving ? <Loader2 className="size-4 animate-spin mr-2" /> : <Plus className="size-4 mr-2" />}
-              Ajouter le produit
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                onClick={handleAddProduct}
+                disabled={saving}
+                className="bg-[#00A651] hover:bg-[#008541] gap-2"
+              >
+                {saving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+                Ajouter le produit
+              </Button>
+              <Button variant="outline" onClick={() => setShowAddForm(false)}>Annuler</Button>
+            </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Automobile Products */}
-      <Card className="border-0 shadow-md">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            Automobile
-            <Badge variant="secondary">{autoProducts.length}</Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {autoProducts.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">Aucun produit automobile</p>
-          ) : (
-            <div className="space-y-4">
-              {autoProducts.map((product) => (
-                <div key={product.id} className="flex gap-4 p-4 bg-gray-50 rounded-lg">
-                  <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 relative">
-                    {product.imageUrl && (
-                      <Image src={product.imageUrl} alt={product.title} fill className="object-cover" unoptimized />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="font-medium text-[#1a1a1a]">{product.title}</p>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          <Badge variant="secondary" className="text-xs bg-[#00A651]/10 text-[#00A651]">
-                            {categoryLabels[product.category] || product.category}
-                          </Badge>
-                          {product.variants && product.variants.split(',').map((v, i) => (
-                            <Badge key={i} variant="outline" className="text-xs">{v.trim()}</Badge>
-                          ))}
-                        </div>
-                        {product.description && (
-                          <p className="text-sm text-gray-500 mt-1 line-clamp-2">{product.description}</p>
-                        )}
-                      </div>
-                      <div className="flex gap-1 flex-shrink-0">
-                        <Button size="icon" variant="ghost" onClick={() => openEditDialog(product)}>
-                          <Pencil className="size-4" />
-                        </Button>
-                        <Button size="icon" variant="ghost" onClick={() => handleDeleteProduct(product.id)}>
-                          <Trash2 className="size-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Search & Filter Bar */}
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+        <div className="relative flex-1 w-full sm:max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+          <Input
+            placeholder="Rechercher un produit..."
+            className="pl-9 h-9 border-gray-200 focus:border-[#00A651]"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className="flex gap-1.5">
+          {[
+            { value: 'all', label: 'Tous' },
+            { value: 'active', label: 'Actifs' },
+            { value: 'inactive', label: 'Inactifs' },
+          ].map((filter) => (
+            <Button
+              key={filter.value}
+              variant={activeFilter === filter.value ? 'default' : 'outline'}
+              size="sm"
+              className={activeFilter === filter.value ? 'bg-[#00A651] hover:bg-[#008541] text-white h-8' : 'h-8'}
+              onClick={() => setActiveFilter(filter.value)}
+            >
+              {filter.label}
+            </Button>
+          ))}
+        </div>
+      </div>
 
-      {/* Agro-alimentaire Products */}
-      <Card className="border-0 shadow-md">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
+      {/* Product Tabs */}
+      <Tabs defaultValue="automobile">
+        <TabsList className="bg-gray-100">
+          <TabsTrigger value="automobile" className="gap-2 data-[state=active]:bg-white">
+            <Car className="size-3.5" />
+            Automobile
+            <Badge variant="secondary" className="text-[10px] h-4 px-1.5">{autoProducts.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="agroalimentaire" className="gap-2 data-[state=active]:bg-white">
+            <Wheat className="size-3.5" />
             Agro-alimentaire
-            <Badge variant="secondary">{agroProducts.length}</Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {agroProducts.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">Aucun produit agro-alimentaire</p>
-          ) : (
-            <div className="space-y-4">
-              {agroProducts.map((product) => (
-                <div key={product.id} className="flex gap-4 p-4 bg-gray-50 rounded-lg">
-                  <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 relative">
-                    {product.imageUrl && (
-                      <Image src={product.imageUrl} alt={product.title} fill className="object-cover" unoptimized />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="font-medium text-[#1a1a1a]">{product.title}</p>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          <Badge variant="secondary" className="text-xs bg-[#00A651]/10 text-[#00A651]">
-                            {categoryLabels[product.category] || product.category}
-                          </Badge>
-                          {product.variants && product.variants.split(',').map((v, i) => (
-                            <Badge key={i} variant="outline" className="text-xs">{v.trim()}</Badge>
-                          ))}
-                        </div>
-                        {product.description && (
-                          <p className="text-sm text-gray-500 mt-1 line-clamp-2">{product.description}</p>
-                        )}
-                      </div>
-                      <div className="flex gap-1 flex-shrink-0">
-                        <Button size="icon" variant="ghost" onClick={() => openEditDialog(product)}>
-                          <Pencil className="size-4" />
-                        </Button>
-                        <Button size="icon" variant="ghost" onClick={() => handleDeleteProduct(product.id)}>
-                          <Trash2 className="size-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            <Badge variant="secondary" className="text-[10px] h-4 px-1.5">{agroProducts.length}</Badge>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="automobile" className="mt-4">
+          <ProductTable
+            products={getFilteredProducts(autoProducts)}
+            onEdit={openEditDialog}
+            onDelete={handleDeleteProduct}
+            onToggleActive={handleToggleActive}
+          />
+        </TabsContent>
+
+        <TabsContent value="agroalimentaire" className="mt-4">
+          <ProductTable
+            products={getFilteredProducts(agroProducts)}
+            onEdit={openEditDialog}
+            onDelete={handleDeleteProduct}
+            onToggleActive={handleToggleActive}
+          />
+        </TabsContent>
+      </Tabs>
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
@@ -521,6 +537,127 @@ export default function ProductManager() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  )
+}
+
+function ProductTable({
+  products,
+  onEdit,
+  onDelete,
+  onToggleActive,
+}: {
+  products: Product[]
+  onEdit: (product: Product) => void
+  onDelete: (id: string) => void
+  onToggleActive: (product: Product) => void
+}) {
+  if (products.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <SlidersHorizontal className="size-8 text-gray-300" />
+        </div>
+        <p className="text-gray-500 font-medium">Aucun produit trouvé</p>
+        <p className="text-gray-400 text-sm mt-1">Essayez de modifier vos filtres</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      {/* Table Header */}
+      <div className="hidden sm:grid grid-cols-[1fr_2fr_1fr_80px_100px] gap-4 px-5 py-3 bg-gray-50/80 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        <span>Image</span>
+        <span>Produit</span>
+        <span>Catégorie</span>
+        <span className="text-center">Statut</span>
+        <span className="text-right">Actions</span>
+      </div>
+
+      {/* Rows */}
+      <div className="divide-y divide-gray-50">
+        {products.map((product) => (
+          <div
+            key={product.id}
+            className={`grid grid-cols-1 sm:grid-cols-[1fr_2fr_1fr_80px_100px] gap-2 sm:gap-4 px-5 py-3.5 items-center hover:bg-gray-50/50 transition-colors ${
+              !product.isActive ? 'opacity-50' : ''
+            }`}
+          >
+            {/* Image */}
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative">
+              {product.imageUrl ? (
+                <Image src={product.imageUrl} alt={product.title} fill className="object-cover" unoptimized />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Package className="size-5 text-gray-300" />
+                </div>
+              )}
+            </div>
+
+            {/* Product info */}
+            <div className="min-w-0">
+              <p className="font-medium text-sm text-[#1a1a1a] truncate">{product.title}</p>
+              {product.description && (
+                <p className="text-xs text-gray-400 truncate mt-0.5">{product.description}</p>
+              )}
+              {product.variants && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {product.variants.split(',').slice(0, 2).map((v, i) => (
+                    <Badge key={i} variant="outline" className="text-[10px] h-4 px-1.5 text-gray-400 border-gray-200">
+                      {v.trim()}
+                    </Badge>
+                  ))}
+                  {product.variants.split(',').length > 2 && (
+                    <Badge variant="outline" className="text-[10px] h-4 px-1.5 text-gray-300 border-gray-200">
+                      +{product.variants.split(',').length - 2}
+                    </Badge>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Category */}
+            <div>
+              <Badge
+                variant="secondary"
+                className={`text-[10px] font-medium ${categoryColors[product.category] || 'bg-gray-100 text-gray-600'}`}
+              >
+                {categoryLabels[product.category] || product.category}
+              </Badge>
+            </div>
+
+            {/* Active toggle */}
+            <div className="flex justify-center">
+              <Switch
+                checked={product.isActive}
+                onCheckedChange={() => onToggleActive(product)}
+                className="data-[state=checked]:bg-[#00A651]"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-1 justify-end">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-gray-400 hover:text-gray-700"
+                onClick={() => onEdit(product)}
+              >
+                <Pencil className="size-3.5" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-gray-400 hover:text-red-600"
+                onClick={() => onDelete(product.id)}
+              >
+                <Trash2 className="size-3.5" />
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

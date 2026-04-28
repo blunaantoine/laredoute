@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Loader2, Plus, Pencil, Trash2 } from 'lucide-react'
+import { Loader2, Plus, Pencil, Trash2, ImageIcon } from 'lucide-react'
 import Image from 'next/image'
 import { useToast } from '@/hooks/use-toast'
 
@@ -38,7 +38,6 @@ export default function ImageManager() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
-  // Add form
   const [newImage, setNewImage] = useState({
     key: '',
     category: 'general',
@@ -48,7 +47,6 @@ export default function ImageManager() {
   })
   const [uploadFile, setUploadFile] = useState<File | null>(null)
 
-  // Edit dialog
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [editingImage, setEditingImage] = useState<SiteImage | null>(null)
   const [editForm, setEditForm] = useState({
@@ -81,7 +79,6 @@ export default function ImageManager() {
       toast({ title: 'Erreur', description: 'La clé et le titre sont requis.', variant: 'destructive' })
       return
     }
-
     setSaving(true)
     try {
       let imageUrl = ''
@@ -91,11 +88,8 @@ export default function ImageManager() {
         formData.append('category', newImage.category)
         const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
         const uploadData = await uploadRes.json()
-        if (uploadData.success) {
-          imageUrl = uploadData.url
-        }
+        if (uploadData.success) imageUrl = uploadData.url
       }
-
       const res = await fetch('/api/images', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -109,18 +103,14 @@ export default function ImageManager() {
           order: 0,
         }),
       })
-
       if (res.ok) {
         toast({ title: 'Image ajoutée' })
         setNewImage({ key: '', category: 'general', title: '', description: '', altText: '' })
         setUploadFile(null)
         fetchImages()
-      } else {
-        const data = await res.json()
-        toast({ title: 'Erreur', description: data.error, variant: 'destructive' })
       }
     } catch {
-      toast({ title: 'Erreur', description: 'Erreur de connexion.', variant: 'destructive' })
+      toast({ title: 'Erreur', variant: 'destructive' })
     } finally {
       setSaving(false)
     }
@@ -128,7 +118,6 @@ export default function ImageManager() {
 
   const handleEditImage = async () => {
     if (!editingImage) return
-
     setSaving(true)
     try {
       let imageUrl = editingImage.imageUrl
@@ -138,11 +127,8 @@ export default function ImageManager() {
         formData.append('category', 'edit-image')
         const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
         const uploadData = await uploadRes.json()
-        if (uploadData.success) {
-          imageUrl = uploadData.url
-        }
+        if (uploadData.success) imageUrl = uploadData.url
       }
-
       const res = await fetch('/api/images', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -156,16 +142,13 @@ export default function ImageManager() {
           altText: editForm.altText || null,
         }),
       })
-
       if (res.ok) {
         toast({ title: 'Image modifiée' })
         setEditDialogOpen(false)
         fetchImages()
-      } else {
-        toast({ title: 'Erreur', description: 'Impossible de modifier l\'image.', variant: 'destructive' })
       }
     } catch {
-      toast({ title: 'Erreur', description: 'Erreur de connexion.', variant: 'destructive' })
+      toast({ title: 'Erreur', variant: 'destructive' })
     } finally {
       setSaving(false)
     }
@@ -180,7 +163,7 @@ export default function ImageManager() {
         fetchImages()
       }
     } catch {
-      toast({ title: 'Erreur', description: 'Impossible de supprimer.', variant: 'destructive' })
+      toast({ title: 'Erreur', variant: 'destructive' })
     }
   }
 
@@ -209,78 +192,48 @@ export default function ImageManager() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-[#1a1a1a]">Images</h1>
-        <p className="text-gray-500 mt-1">Gérez les images du site</p>
+        <p className="text-gray-500 mt-1 text-sm">{images.length} images au total</p>
       </div>
 
       {/* Add Image Form */}
-      <Card className="border-0 shadow-md">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Plus className="size-5 text-[#00A651]" />
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <Plus className="size-4 text-[#00A651]" />
             Ajouter une image
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Clé *</Label>
-              <Input
-                placeholder="ex: hero-banner"
-                value={newImage.key}
-                onChange={(e) => setNewImage({ ...newImage, key: e.target.value })}
-              />
+              <Label className="text-sm">Clé *</Label>
+              <Input placeholder="ex: hero-banner" value={newImage.key} onChange={(e) => setNewImage({ ...newImage, key: e.target.value })} className="focus:border-[#00A651] focus:ring-[#00A651]/20" />
             </div>
             <div className="space-y-2">
-              <Label>Catégorie</Label>
-              <select
-                className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-                value={newImage.category}
-                onChange={(e) => setNewImage({ ...newImage, category: e.target.value })}
-              >
-                {imageCategories.map((cat) => (
-                  <option key={cat.key} value={cat.key}>{cat.label}</option>
-                ))}
+              <Label className="text-sm">Catégorie</Label>
+              <select className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm" value={newImage.category} onChange={(e) => setNewImage({ ...newImage, category: e.target.value })}>
+                {imageCategories.map((cat) => (<option key={cat.key} value={cat.key}>{cat.label}</option>))}
               </select>
             </div>
             <div className="space-y-2">
-              <Label>Titre *</Label>
-              <Input
-                placeholder="Titre de l'image"
-                value={newImage.title}
-                onChange={(e) => setNewImage({ ...newImage, title: e.target.value })}
-              />
+              <Label className="text-sm">Titre *</Label>
+              <Input placeholder="Titre de l'image" value={newImage.title} onChange={(e) => setNewImage({ ...newImage, title: e.target.value })} className="focus:border-[#00A651] focus:ring-[#00A651]/20" />
             </div>
             <div className="space-y-2">
-              <Label>Description</Label>
-              <Input
-                placeholder="Description (optionnel)"
-                value={newImage.description}
-                onChange={(e) => setNewImage({ ...newImage, description: e.target.value })}
-              />
+              <Label className="text-sm">Description</Label>
+              <Input placeholder="Description (optionnel)" value={newImage.description} onChange={(e) => setNewImage({ ...newImage, description: e.target.value })} className="focus:border-[#00A651] focus:ring-[#00A651]/20" />
             </div>
             <div className="space-y-2">
-              <Label>Fichier image</Label>
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-              />
+              <Label className="text-sm">Fichier image</Label>
+              <Input type="file" accept="image/*" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} />
             </div>
             <div className="space-y-2">
-              <Label>Texte alternatif</Label>
-              <Input
-                placeholder="Alt text"
-                value={newImage.altText}
-                onChange={(e) => setNewImage({ ...newImage, altText: e.target.value })}
-              />
+              <Label className="text-sm">Texte alternatif</Label>
+              <Input placeholder="Alt text" value={newImage.altText} onChange={(e) => setNewImage({ ...newImage, altText: e.target.value })} className="focus:border-[#00A651] focus:ring-[#00A651]/20" />
             </div>
           </div>
-          <Button
-            onClick={handleAddImage}
-            disabled={saving}
-            className="bg-[#00A651] hover:bg-[#008541]"
-          >
-            {saving ? <Loader2 className="size-4 animate-spin mr-2" /> : <Plus className="size-4 mr-2" />}
+          <Button onClick={handleAddImage} disabled={saving} className="bg-[#00A651] hover:bg-[#008541] gap-2">
+            {saving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
             Ajouter
           </Button>
         </CardContent>
@@ -290,49 +243,33 @@ export default function ImageManager() {
       {imageCategories.map((cat) => {
         const catImages = images.filter((img) => img.category === cat.key)
         if (catImages.length === 0) return null
-
         return (
-          <Card key={cat.key} className="border-0 shadow-md">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
+          <Card key={cat.key} className="border-0 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
                 {cat.label}
-                <Badge variant="secondary">{catImages.length}</Badge>
+                <Badge variant="secondary" className="text-[10px]">{catImages.length}</Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                 {catImages.map((image) => (
-                  <div key={image.id} className="border rounded-lg p-3 space-y-2">
-                    <div className="relative aspect-video bg-gray-100 rounded overflow-hidden">
-                      <Image
-                        src={image.imageUrl}
-                        alt={image.altText || image.title}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
+                  <div key={image.id} className="group border border-gray-100 rounded-lg overflow-hidden hover:border-gray-200 hover:shadow-sm transition-all">
+                    <div className="relative aspect-[4/3] bg-gray-50">
+                      <Image src={image.imageUrl} alt={image.altText || image.title} fill className="object-cover" unoptimized />
                     </div>
-                    <div>
-                      <p className="font-medium text-sm">{image.title}</p>
-                      <p className="text-xs text-gray-500">{image.key}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditDialog(image)}
-                        className="flex-1"
-                      >
-                        <Pencil className="size-3 mr-1" />
-                        Modifier
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteImage(image.id)}
-                      >
-                        <Trash2 className="size-3" />
-                      </Button>
+                    <div className="p-2.5">
+                      <p className="font-medium text-xs truncate">{image.title}</p>
+                      <p className="text-[10px] text-gray-400 truncate">{image.key}</p>
+                      <div className="flex gap-1.5 mt-2">
+                        <Button variant="outline" size="sm" onClick={() => openEditDialog(image)} className="flex-1 h-7 text-[11px] gap-1">
+                          <Pencil className="size-3" />
+                          Modifier
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteImage(image.id)} className="h-7 w-7 p-0 text-gray-400 hover:text-red-500">
+                          <Trash2 className="size-3" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -341,6 +278,16 @@ export default function ImageManager() {
           </Card>
         )
       })}
+
+      {images.length === 0 && (
+        <div className="text-center py-16">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <ImageIcon className="size-8 text-gray-300" />
+          </div>
+          <p className="text-gray-500 font-medium">Aucune image</p>
+          <p className="text-gray-400 text-sm mt-1">Ajoutez votre première image</p>
+        </div>
+      )}
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
@@ -352,51 +299,29 @@ export default function ImageManager() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Clé</Label>
-                <Input
-                  value={editForm.key}
-                  onChange={(e) => setEditForm({ ...editForm, key: e.target.value })}
-                />
+                <Input value={editForm.key} onChange={(e) => setEditForm({ ...editForm, key: e.target.value })} className="focus:border-[#00A651] focus:ring-[#00A651]/20" />
               </div>
               <div className="space-y-2">
                 <Label>Catégorie</Label>
-                <select
-                  className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-                  value={editForm.category}
-                  onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
-                >
-                  {imageCategories.map((cat) => (
-                    <option key={cat.key} value={cat.key}>{cat.label}</option>
-                  ))}
+                <select className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm" value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}>
+                  {imageCategories.map((cat) => (<option key={cat.key} value={cat.key}>{cat.label}</option>))}
                 </select>
               </div>
               <div className="space-y-2">
                 <Label>Titre</Label>
-                <Input
-                  value={editForm.title}
-                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                />
+                <Input value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} className="focus:border-[#00A651] focus:ring-[#00A651]/20" />
               </div>
               <div className="space-y-2">
                 <Label>Texte alternatif</Label>
-                <Input
-                  value={editForm.altText}
-                  onChange={(e) => setEditForm({ ...editForm, altText: e.target.value })}
-                />
+                <Input value={editForm.altText} onChange={(e) => setEditForm({ ...editForm, altText: e.target.value })} className="focus:border-[#00A651] focus:ring-[#00A651]/20" />
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>Description</Label>
-                <Input
-                  value={editForm.description}
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                />
+                <Input value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} className="focus:border-[#00A651] focus:ring-[#00A651]/20" />
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>Nouvelle image (laisser vide pour garder l&apos;actuelle)</Label>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setEditFile(e.target.files?.[0] || null)}
-                />
+                <Input type="file" accept="image/*" onChange={(e) => setEditFile(e.target.files?.[0] || null)} />
               </div>
             </div>
           </div>

@@ -8,6 +8,9 @@ import HomepageEditor from './HomepageEditor'
 import ProductManager from './ProductManager'
 import ImageManager from './ImageManager'
 import PartnerManager from './PartnerManager'
+import { Button } from '@/components/ui/button'
+import { X, Menu, ExternalLink } from 'lucide-react'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 
 interface AdminPanelProps {
   isAuthenticated: boolean
@@ -17,12 +20,26 @@ interface AdminPanelProps {
   onRefresh?: () => void
 }
 
+const tabMeta: Record<string, { label: string; description: string }> = {
+  dashboard: { label: 'Tableau de bord', description: "Vue d'ensemble de votre site" },
+  homepage: { label: 'Pages du site', description: 'Gérez le contenu et les images' },
+  products: { label: 'Produits', description: 'Gérez votre catalogue de produits' },
+  images: { label: 'Images', description: 'Gérez les images du site' },
+  partners: { label: 'Partenaires', description: 'Gérez vos partenaires' },
+}
+
 export default function AdminPanel({ isAuthenticated, onLogin, onLogout, onClose, onRefresh }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   const handleLogin = useCallback(async (password: string): Promise<boolean> => {
     return onLogin(password)
   }, [onLogin])
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab)
+    setMobileOpen(false)
+  }
 
   if (!isAuthenticated) {
     return <AdminLogin onLogin={handleLogin} onBack={onClose} />
@@ -45,13 +62,15 @@ export default function AdminPanel({ isAuthenticated, onLogin, onLogout, onClose
     }
   }
 
+  const currentTab = tabMeta[activeTab] || tabMeta.dashboard
+
   return (
-    <div className="fixed inset-0 z-50 bg-gray-50 flex">
-      {/* Sidebar - hidden on mobile, shown on desktop */}
-      <div className="hidden md:flex">
+    <div className="fixed inset-0 z-50 bg-[#f8fafc] flex">
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex">
         <AdminSidebar
           activeTab={activeTab}
-          onTabChange={setActiveTab}
+          onTabChange={handleTabChange}
           onLogout={onLogout}
           onClose={onClose}
         />
@@ -59,36 +78,53 @@ export default function AdminPanel({ isAuthenticated, onLogin, onLogout, onClose
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile header */}
-        <div className="md:hidden bg-[#0d3d2e] text-white p-4 flex items-center justify-between">
-          <span className="font-semibold">Administration</span>
-          <button onClick={onClose} className="text-white/70 hover:text-white">
-            ✕
-          </button>
-        </div>
+        {/* Top Header Bar */}
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            {/* Mobile menu trigger */}
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="lg:hidden">
+                  <Menu className="size-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-[280px]">
+                <AdminSidebar
+                  activeTab={activeTab}
+                  onTabChange={handleTabChange}
+                  onLogout={onLogout}
+                  onClose={onClose}
+                  isMobile
+                />
+              </SheetContent>
+            </Sheet>
 
-        {/* Mobile nav */}
-        <div className="md:hidden bg-[#0d3d2e]/90 border-t border-white/10 px-2 py-2 flex gap-1 overflow-x-auto">
-          {[
-            { id: 'dashboard', label: 'Dashboard' },
-            { id: 'homepage', label: 'Pages' },
-            { id: 'products', label: 'Produits' },
-            { id: 'images', label: 'Images' },
-            { id: 'partners', label: 'Partenaires' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                activeTab === tab.id
-                  ? 'bg-[#00A651] text-white'
-                  : 'text-white/70 hover:text-white hover:bg-white/10'
-              }`}
+            <div>
+              <h2 className="text-sm font-semibold text-[#1a1a1a]">{currentTab.label}</h2>
+              <p className="text-xs text-gray-500">{currentTab.description}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onClose}
+              className="text-gray-600 gap-1.5"
             >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+              <ExternalLink className="size-3.5" />
+              <span className="hidden sm:inline">Voir le site</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="lg:hidden text-gray-500"
+            >
+              <X className="size-5" />
+            </Button>
+          </div>
+        </header>
 
         {/* Content area */}
         <main className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-8">
