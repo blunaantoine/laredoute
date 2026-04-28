@@ -14,6 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://laredoutesarl.com"),
   title: "LA REDOUTE SARL-U - Distribution Professionnelle au Togo",
   description: "Distribution professionnelle de pneus, huiles moteurs et produits d'alimentation générale au Togo. Qualité, fiabilité et service exceptionnel.",
   keywords: ["LA REDOUTE", "distribution", "pneus", "huiles moteurs", "agroalimentaire", "Togo", "Lomé", "Michelin", "Goodyear", "Total", "Shell", "riz", "pâtes", "huiles alimentaires"],
