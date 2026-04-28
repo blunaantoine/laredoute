@@ -119,9 +119,20 @@ The site uses a **NavigationContext** for client-side page routing with **5 dedi
 - No bulk actions in admin (activate/deactivate multiple items)
 - Agro-alimentaire products may need to be replaced with user's actual product list (pending user input)
 
+### Phase 9: Git Push Preparation + Professional Category Images
+- **Generated AI images** for "Deux Domaines d'Expertise" section:
+  - Automobile: Professional showroom image with tires and motor oil (`/auto-category-new.png`)
+  - Agro-alimentaire: Premium food products display with rice, pasta, and oil (`/agro-category-new.png`)
+- **Updated database** with new image URLs via API (PUT /api/images)
+- **Git status**: All changes committed (13 commits total on main branch)
+- **No git remote configured** — user needs to add remote before pushing
+- **QA verified**: All pages functional, no errors, both category images display correctly
+- **Lint**: Passes with no errors
+
 ## Next Phase Priorities
-1. Add Framer Motion page transitions
-2. Add search across all products (global search)
-3. Add bulk actions in admin (activate/deactivate multiple items)
-4. Replace agro-alimentaire products when user provides their list
-5. Improve mobile responsiveness of admin interface
+1. **User action needed**: Add git remote and push (`git remote add origin <URL> && git push -u origin main`)
+2. Add Framer Motion page transitions
+3. Add search across all products (global search)
+4. Add bulk actions in admin (activate/deactivate multiple items)
+5. Replace agro-alimentaire products when user provides their list
+6. Improve mobile responsiveness of admin interface
