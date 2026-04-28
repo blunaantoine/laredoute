@@ -1,16 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { createHmac } from 'crypto'
 
-// Generate a session token from password + timestamp
-function generateSessionToken(password: string): string {
-  const secret = process.env.SESSION_SECRET || 'laredoute-session-2026'
-  return createHmac('sha256', secret).update(password + Date.now()).digest('hex').slice(0, 32)
+// Generate a simple session token without crypto dependency
+function generateSessionToken(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  const segments = []
+  for (let s = 0; s < 4; s++) {
+    let segment = ''
+    for (let i = 0; i < 8; i++) {
+      segment += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    segments.push(segment)
+  }
+  return segments.join('-') + '-' + Date.now().toString(36)
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    let body
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json(
+        { success: false, error: 'Requête invalide' },
+        { status: 400 }
+      )
+    }
+
     const { password } = body
 
     if (!password) {
@@ -49,7 +65,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const sessionToken = generateSessionToken(password)
+    const sessionToken = generateSessionToken()
     const response = NextResponse.json({ success: true })
 
     // Use a new cookie name with version to invalidate old sessions
@@ -73,7 +89,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json(
-      { success: false, error: 'Erreur serveur' },
+      { success: false, error: 'Erreur serveur: ' + (error instanceof Error ? error.message : String(error)) },
       { status: 500 }
     )
   }
