@@ -2,29 +2,33 @@ import { PrismaClient } from '@prisma/client'
 import path from 'path'
 import fs from 'fs'
 
-// Ensure DATABASE_URL is set and the database directory exists
+// Resolve the database path - use absolute path for reliability
 function ensureDatabase() {
   let dbUrl = process.env.DATABASE_URL
 
+  // If DATABASE_URL is not set, compute an absolute path
   if (!dbUrl) {
-    // Default to relative path if not set
-    dbUrl = 'file:./db/custom.db'
+    // Default: /var/www/laredoutesarl/db/custom.db on server,
+    // or <project_root>/db/custom.db in dev
+    const projectRoot = path.resolve(process.cwd())
+    const dbPath = path.resolve(projectRoot, 'db', 'custom.db')
+    dbUrl = `file:${dbPath}`
     process.env.DATABASE_URL = dbUrl
+    console.log(`[DB] DATABASE_URL not set, defaulting to: ${dbUrl}`)
   }
 
-  // Resolve the actual file path from the DATABASE_URL
+  // If DATABASE_URL uses a relative path, resolve it to absolute
   if (dbUrl.startsWith('file:')) {
     let dbPath = dbUrl.replace('file:', '')
 
-    if (dbPath.startsWith('/') && !dbPath.startsWith('//')) {
-      // This is an absolute path - keep it as is
-    } else if (dbPath.startsWith('./')) {
-      // Relative path - resolve from project root (cwd)
+    if (dbPath.startsWith('./')) {
+      // Relative path - resolve from cwd to absolute
       const projectRoot = path.resolve(process.cwd())
       dbPath = path.resolve(projectRoot, dbPath)
 
       // Update DATABASE_URL to absolute path for reliability
       process.env.DATABASE_URL = `file:${dbPath}`
+      console.log(`[DB] Resolved relative DATABASE_URL to absolute: file:${dbPath}`)
     }
 
     // Ensure the directory exists
@@ -38,7 +42,7 @@ function ensureDatabase() {
       }
     }
 
-    console.log(`[DB] Database path resolved to: ${dbPath}`)
+    console.log(`[DB] Database path: ${dbPath} (exists: ${fs.existsSync(dbPath)})`)
   }
 }
 
