@@ -1,11 +1,13 @@
 'use client'
 
+import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { ArrowRight, Award, HeadphonesIcon, Heart, Car, Wheat } from 'lucide-react'
+import { ArrowRight, Award, HeadphonesIcon, Heart, Car, Wheat, Phone, Mail, MapPin } from 'lucide-react'
 import Image from 'next/image'
 import { useNavigation } from '@/context/NavigationContext'
+import ProductDetailDialog from '@/components/shared/ProductDetailDialog'
 
 interface Product {
   id: string
@@ -43,21 +45,33 @@ const values = [
   },
 ]
 
+const categoryLabels: Record<string, string> = {
+  pneus: 'Pneus',
+  huiles: 'Huiles Moteurs',
+  accessoires: 'Accessoires Auto',
+  alimentation: 'Produits Alimentaires',
+  boissons: 'Boissons',
+  cereales: 'Céréales & Grains',
+}
+
 export default function AccueilPage({ content, images, products }: AccueilPageProps) {
   const { navigateTo } = useNavigation()
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogIcon, setDialogIcon] = useState<React.ElementType>(Car)
 
   const autoProducts = products.filter(p => p.subcategory === 'automobile' && p.isActive)
   const agroProducts = products.filter(p => p.subcategory === 'agroalimentaire' && p.isActive)
   const autoVariants = [...new Set(autoProducts.map(p => p.category).filter(Boolean))]
   const agroVariants = [...new Set(agroProducts.map(p => p.category).filter(Boolean))]
 
-  const categoryLabels: Record<string, string> = {
-    pneus: 'Pneus',
-    huiles: 'Huiles Moteurs',
-    accessoires: 'Accessoires Auto',
-    alimentation: 'Produits Alimentaires',
-    boissons: 'Boissons',
-    cereales: 'Céréales & Grains',
+  const featuredAuto = autoProducts.slice(0, 4)
+  const featuredAgro = agroProducts.slice(0, 4)
+
+  const handleProductClick = (product: Product, icon: React.ElementType) => {
+    setSelectedProduct(product)
+    setDialogIcon(icon)
+    setDialogOpen(true)
   }
 
   return (
@@ -106,6 +120,22 @@ export default function AccueilPage({ content, images, products }: AccueilPagePr
                   Nous Contacter
                 </Button>
               </div>
+
+              {/* Quick contact info in hero */}
+              <div className="flex flex-wrap gap-4 pt-4">
+                <a href="tel:+22822251898" className="flex items-center gap-2 text-white/60 hover:text-white/90 text-sm transition-colors">
+                  <Phone className="size-4" />
+                  +228 22 25 18 98
+                </a>
+                <a href="mailto:contact@laredoutesarl.com" className="flex items-center gap-2 text-white/60 hover:text-white/90 text-sm transition-colors">
+                  <Mail className="size-4" />
+                  contact@laredoutesarl.com
+                </a>
+                <span className="flex items-center gap-2 text-white/60 text-sm">
+                  <MapPin className="size-4" />
+                  Lomé, Togo
+                </span>
+              </div>
             </div>
             <div className="hidden lg:flex justify-center items-center">
               <div className="relative animate-float">
@@ -146,6 +176,7 @@ export default function AccueilPage({ content, images, products }: AccueilPagePr
                   src="/products-tires.png"
                   alt="Automobile"
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -190,6 +221,7 @@ export default function AccueilPage({ content, images, products }: AccueilPagePr
                   src="/products-food.png"
                   alt="Agro-alimentaire"
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -229,6 +261,132 @@ export default function AccueilPage({ content, images, products }: AccueilPagePr
           </div>
         </div>
       </section>
+
+      {/* Featured Products - Automobile */}
+      {featuredAuto.length > 0 && (
+        <section className="py-20 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#00A651]/10 rounded-lg flex items-center justify-center">
+                  <Car className="size-5 text-[#00A651]" />
+                </div>
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-[#1a1a1a]">Produits Automobiles</h2>
+                  <p className="text-sm text-gray-500">Sélection de nos produits phares</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                className="text-[#00A651] hover:text-[#008541] hover:bg-[#00A651]/5"
+                onClick={() => navigateTo('automobile')}
+              >
+                Voir tout
+                <ArrowRight className="ml-1 size-4" />
+              </Button>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredAuto.map(product => (
+                <Card
+                  key={product.id}
+                  className="overflow-hidden card-hover border-0 shadow-md group cursor-pointer"
+                  onClick={() => handleProductClick(product, Car)}
+                >
+                  <div className="relative h-40 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+                    {product.imageUrl ? (
+                      <Image
+                        src={product.imageUrl}
+                        alt={product.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                          <Car className="size-6 text-[#00A651]/40" />
+                        </div>
+                      </div>
+                    )}
+                    <Badge className="absolute top-2 left-2 bg-[#00A651] text-white text-xs">
+                      {categoryLabels[product.category] || product.category}
+                    </Badge>
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-[#1a1a1a] text-sm mb-1 line-clamp-1">{product.title}</h3>
+                    {product.description && (
+                      <p className="text-xs text-gray-500 line-clamp-2">{product.description}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Featured Products - Agro-alimentaire */}
+      {featuredAgro.length > 0 && (
+        <section className="py-20 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#00A651]/10 rounded-lg flex items-center justify-center">
+                  <Wheat className="size-5 text-[#00A651]" />
+                </div>
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-[#1a1a1a]">Produits Agro-alimentaires</h2>
+                  <p className="text-sm text-gray-500">Sélection de nos produits phares</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                className="text-[#00A651] hover:text-[#008541] hover:bg-[#00A651]/5"
+                onClick={() => navigateTo('agroalimentaire')}
+              >
+                Voir tout
+                <ArrowRight className="ml-1 size-4" />
+              </Button>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredAgro.map(product => (
+                <Card
+                  key={product.id}
+                  className="overflow-hidden card-hover border-0 shadow-md group cursor-pointer"
+                  onClick={() => handleProductClick(product, Wheat)}
+                >
+                  <div className="relative h-40 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+                    {product.imageUrl ? (
+                      <Image
+                        src={product.imageUrl}
+                        alt={product.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                          <Wheat className="size-6 text-[#00A651]/40" />
+                        </div>
+                      </div>
+                    )}
+                    <Badge className="absolute top-2 left-2 bg-[#00A651] text-white text-xs">
+                      {categoryLabels[product.category] || product.category}
+                    </Badge>
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-[#1a1a1a] text-sm mb-1 line-clamp-1">{product.title}</h3>
+                    {product.description && (
+                      <p className="text-xs text-gray-500 line-clamp-2">{product.description}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Values Section */}
       <section className="py-20 bg-white">
@@ -288,8 +446,28 @@ export default function AccueilPage({ content, images, products }: AccueilPagePr
               <ArrowRight className="ml-2 size-4" />
             </Button>
           </div>
+          {/* Contact info in CTA */}
+          <div className="mt-8 flex flex-wrap justify-center gap-6 text-white/60 text-sm">
+            <a href="tel:+22822251898" className="flex items-center gap-2 hover:text-white/90 transition-colors">
+              <Phone className="size-4" />
+              +228 22 25 18 98
+            </a>
+            <a href="mailto:contact@laredoutesarl.com" className="flex items-center gap-2 hover:text-white/90 transition-colors">
+              <Mail className="size-4" />
+              contact@laredoutesarl.com
+            </a>
+          </div>
         </div>
       </section>
+
+      {/* Product Detail Dialog */}
+      <ProductDetailDialog
+        product={selectedProduct}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        categoryLabels={categoryLabels}
+        categoryIcon={dialogIcon}
+      />
     </div>
   )
 }

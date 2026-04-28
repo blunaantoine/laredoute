@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { ArrowLeft, Phone, Mail, MapPin, Clock, Send, MessageCircle, Building, Car, Wheat, Info } from 'lucide-react'
+import { ArrowLeft, Phone, Mail, MapPin, Clock, Send, MessageCircle, Building, Car, Wheat, Info, Globe } from 'lucide-react'
 import { useNavigation } from '@/context/NavigationContext'
 
 interface ContactPageProps {
@@ -42,29 +42,34 @@ export default function ContactPage({ content }: ContactPageProps) {
       icon: Phone,
       title: 'Téléphone',
       details: ['+228 22 25 18 98 (Fixe)', '+228 92 50 19 44 (WhatsApp)'],
-      action: 'tel:+22822251898',
-      actionLabel: 'Appeler',
+      actions: [
+        { label: 'Appeler le fixe', href: 'tel:+22822251898' },
+        { label: 'Appeler WhatsApp', href: 'tel:+22892501944' },
+      ],
+      color: '#00A651',
     },
     {
       icon: Mail,
       title: 'Email',
       details: ['contact@laredoutesarl.com'],
-      action: 'mailto:contact@laredoutesarl.com',
-      actionLabel: 'Envoyer un email',
+      actions: [
+        { label: 'Envoyer un email', href: 'mailto:contact@laredoutesarl.com' },
+      ],
+      color: '#00A651',
     },
     {
       icon: MapPin,
       title: 'Adresse',
-      details: ['Lomé, Togo'],
-      action: null,
-      actionLabel: null,
+      details: ['Lomé, Togo', 'Au cœur de l\'Afrique de l\'Ouest'],
+      actions: [],
+      color: '#00A651',
     },
     {
       icon: Clock,
       title: 'Heures d\'ouverture',
       details: ['Lun - Ven: 8h00 - 18h00', 'Sam: 8h00 - 13h00'],
-      action: null,
-      actionLabel: null,
+      actions: [],
+      color: '#00A651',
     },
   ]
 
@@ -113,13 +118,18 @@ export default function ContactPage({ content }: ContactPageProps) {
                   {info.details.map((detail, i) => (
                     <p key={i} className="text-sm text-gray-600">{detail}</p>
                   ))}
-                  {info.action && (
-                    <a
-                      href={info.action}
-                      className="inline-flex items-center text-sm text-[#00A651] hover:underline font-medium"
-                    >
-                      {info.actionLabel}
-                    </a>
+                  {info.actions.length > 0 && (
+                    <div className="flex flex-wrap justify-center gap-2 pt-1">
+                      {info.actions.map((action, i) => (
+                        <a
+                          key={i}
+                          href={action.href}
+                          className="inline-flex items-center text-xs text-[#00A651] hover:underline font-medium bg-[#00A651]/5 px-2 py-1 rounded-md"
+                        >
+                          {action.label}
+                        </a>
+                      ))}
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -256,7 +266,7 @@ export default function ContactPage({ content }: ContactPageProps) {
                     <MessageCircle className="size-8" />
                     <div>
                       <h3 className="font-semibold">WhatsApp</h3>
-                      <p className="text-white/80 text-sm">Réponse rapide</p>
+                      <p className="text-white/80 text-sm">+228 92 50 19 44</p>
                     </div>
                   </div>
                   <p className="text-white/90 text-sm mb-4">
@@ -270,6 +280,40 @@ export default function ContactPage({ content }: ContactPageProps) {
                       Ouvrir WhatsApp
                     </a>
                   </Button>
+                </CardContent>
+              </Card>
+
+              {/* Direct Contact */}
+              <Card className="border-0 shadow-lg">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-[#00A651]/10 rounded-lg flex items-center justify-center">
+                      <Phone className="size-5 text-[#00A651]" />
+                    </div>
+                    <h3 className="font-semibold text-[#1a1a1a]">Contact Direct</h3>
+                  </div>
+                  <div className="space-y-3">
+                    <a
+                      href="tel:+22822251898"
+                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-[#00A651]/5 transition-colors"
+                    >
+                      <Phone className="size-4 text-[#00A651]" />
+                      <div>
+                        <p className="text-sm font-medium text-[#1a1a1a]">+228 22 25 18 98</p>
+                        <p className="text-xs text-gray-500">Ligne fixe</p>
+                      </div>
+                    </a>
+                    <a
+                      href="mailto:contact@laredoutesarl.com"
+                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-[#00A651]/5 transition-colors"
+                    >
+                      <Mail className="size-4 text-[#00A651]" />
+                      <div>
+                        <p className="text-sm font-medium text-[#1a1a1a]">contact@laredoutesarl.com</p>
+                        <p className="text-xs text-gray-500">Email professionnel</p>
+                      </div>
+                    </a>
+                  </div>
                 </CardContent>
               </Card>
 

@@ -5,9 +5,10 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Car, CircleDot, Droplets, Wrench, Search, ArrowLeft, ChevronRight } from 'lucide-react'
+import { Car, CircleDot, Droplets, Wrench, Search, ArrowLeft, ChevronRight, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import { useNavigation } from '@/context/NavigationContext'
+import ProductDetailDialog from '@/components/shared/ProductDetailDialog'
 
 interface Product {
   id: string
@@ -27,15 +28,23 @@ interface AutomobilePageProps {
 }
 
 const subcategoryConfig = [
-  { value: 'pneus', label: 'Pneus', icon: CircleDot },
-  { value: 'huiles', label: 'Huiles Moteurs', icon: Droplets },
-  { value: 'accessoires', label: 'Accessoires Auto', icon: Wrench },
+  { value: 'pneus', label: 'Pneus', icon: CircleDot, description: 'Tourisme, 4x4, utilitaire, poids lourds' },
+  { value: 'huiles', label: 'Huiles Moteurs', icon: Droplets, description: 'Synthétique, semi-synthétique, minérale' },
+  { value: 'accessoires', label: 'Accessoires Auto', icon: Wrench, description: 'Batteries, filtres, ampoules, etc.' },
 ]
+
+const categoryLabels: Record<string, string> = {
+  pneus: 'Pneus',
+  huiles: 'Huiles Moteurs',
+  accessoires: 'Accessoires Auto',
+}
 
 export default function AutomobilePage({ content, products }: AutomobilePageProps) {
   const { navigateTo } = useNavigation()
   const [activeSubcategory, setActiveSubcategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   const autoProducts = products.filter(p => p.subcategory === 'automobile' && p.isActive)
 
@@ -48,10 +57,9 @@ export default function AutomobilePage({ content, products }: AutomobilePageProp
     return matchesSubcategory && matchesSearch
   })
 
-  const categoryLabels: Record<string, string> = {
-    pneus: 'Pneus',
-    huiles: 'Huiles Moteurs',
-    accessoires: 'Accessoires Auto',
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product)
+    setDialogOpen(true)
   }
 
   return (
@@ -90,8 +98,47 @@ export default function AutomobilePage({ content, products }: AutomobilePageProp
         </div>
       </section>
 
+      {/* Subcategory Cards */}
+      <section className="py-8 bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {subcategoryConfig.map(sub => {
+              const count = autoProducts.filter(p => p.category === sub.value).length
+              return (
+                <button
+                  key={sub.value}
+                  onClick={() => setActiveSubcategory(activeSubcategory === sub.value ? 'all' : sub.value)}
+                  className={`p-4 rounded-xl border-2 transition-all text-left ${
+                    activeSubcategory === sub.value
+                      ? 'border-[#00A651] bg-[#00A651]/5 shadow-sm'
+                      : activeSubcategory === 'all'
+                        ? 'border-gray-100 hover:border-[#00A651]/30 hover:bg-[#00A651]/5'
+                        : 'border-gray-100 hover:border-[#00A651]/30 hover:bg-[#00A651]/5'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      activeSubcategory === sub.value ? 'bg-[#00A651] text-white' : 'bg-[#00A651]/10 text-[#00A651]'
+                    }`}>
+                      <sub.icon className="size-5" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold text-[#1a1a1a] text-sm">{sub.label}</h3>
+                        <Badge variant="secondary" className="bg-gray-100 text-gray-600 text-xs">{count}</Badge>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5">{sub.description}</p>
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* Filters and Search */}
-      <section className="py-8 bg-white border-b border-gray-100 sticky top-16 sm:top-20 z-30">
+      <section className="py-4 bg-white border-b border-gray-100 sticky top-16 sm:top-20 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             {/* Subcategory Filters */}
@@ -161,7 +208,7 @@ export default function AutomobilePage({ content, products }: AutomobilePageProp
                       </div>
                       <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {subProducts.map(product => (
-                          <ProductCard key={product.id} product={product} categoryLabels={categoryLabels} />
+                          <ProductCard key={product.id} product={product} onClick={() => handleProductClick(product)} />
                         ))}
                       </div>
                     </div>
@@ -170,7 +217,7 @@ export default function AutomobilePage({ content, products }: AutomobilePageProp
               ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {filteredProducts.map(product => (
-                    <ProductCard key={product.id} product={product} categoryLabels={categoryLabels} />
+                    <ProductCard key={product.id} product={product} onClick={() => handleProductClick(product)} />
                   ))}
                 </div>
               )}
@@ -210,14 +257,34 @@ export default function AutomobilePage({ content, products }: AutomobilePageProp
           </div>
         </div>
       </section>
+
+      {/* Product Detail Dialog */}
+      <ProductDetailDialog
+        product={selectedProduct}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        categoryLabels={categoryLabels}
+        categoryIcon={Car}
+      />
     </div>
   )
 }
 
-function ProductCard({ product, categoryLabels }: { product: Product; categoryLabels: Record<string, string> }) {
+function ProductCard({ product, onClick }: { product: Product; onClick: () => void }) {
+  const categoryLabels: Record<string, string> = {
+    pneus: 'Pneus',
+    huiles: 'Huiles Moteurs',
+    accessoires: 'Accessoires Auto',
+  }
+
+  const variantList = product.variants ? product.variants.split(',').map(v => v.trim()) : []
+
   return (
-    <Card className="overflow-hidden card-hover border-0 shadow-md group">
-      <div className="relative h-48 bg-gray-100 overflow-hidden">
+    <Card
+      className="overflow-hidden card-hover border-0 shadow-md group cursor-pointer"
+      onClick={onClick}
+    >
+      <div className="relative h-48 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
         {product.imageUrl ? (
           <Image
             src={product.imageUrl}
@@ -228,7 +295,9 @@ function ProductCard({ product, categoryLabels }: { product: Product; categoryLa
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Car className="size-12 text-gray-300" />
+            <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-sm">
+              <Car className="size-8 text-[#00A651]/40" />
+            </div>
           </div>
         )}
         <Badge className="absolute top-3 left-3 bg-[#00A651] text-white text-xs">
@@ -240,20 +309,24 @@ function ProductCard({ product, categoryLabels }: { product: Product; categoryLa
         {product.description && (
           <p className="text-sm text-gray-500 mb-3 line-clamp-2">{product.description}</p>
         )}
-        {product.variants && (
+        {variantList.length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {product.variants.split(',').slice(0, 3).map((v, i) => (
-              <Badge key={i} variant="outline" className="text-xs text-gray-500">
-                {v.trim()}
+            {variantList.slice(0, 3).map((v, i) => (
+              <Badge key={i} variant="outline" className="text-xs text-gray-500 border-gray-200">
+                {v}
               </Badge>
             ))}
-            {product.variants.split(',').length > 3 && (
-              <Badge variant="outline" className="text-xs text-gray-400">
-                +{product.variants.split(',').length - 3}
+            {variantList.length > 3 && (
+              <Badge variant="outline" className="text-xs text-gray-400 border-gray-200">
+                +{variantList.length - 3}
               </Badge>
             )}
           </div>
         )}
+        <div className="mt-3 flex items-center text-xs text-[#00A651] font-medium group-hover:underline">
+          Voir les détails
+          <ArrowRight className="ml-1 size-3" />
+        </div>
       </CardContent>
     </Card>
   )
