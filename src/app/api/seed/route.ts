@@ -429,7 +429,7 @@ export async function POST() {
         data: {
           email: 'admin@laredoutesarl.com',
           name: 'Administrateur',
-          password: process.env.ADMIN_PASSWORD || 'laredoute2024',
+          password: process.env.ADMIN_PASSWORD || 'Antoine@228',
           role: 'admin',
         },
       })

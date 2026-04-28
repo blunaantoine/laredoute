@@ -32,13 +32,13 @@ export async function POST(request: NextRequest) {
         passwordMatches = password === adminUser.password
       } else {
         // Fallback to env variable (for first login before DB user exists)
-        const envPassword = process.env.ADMIN_PASSWORD || 'laredoute2024'
+        const envPassword = process.env.ADMIN_PASSWORD || 'Antoine@228'
         passwordMatches = password === envPassword
       }
     } catch (dbError) {
       // If DB fails, fallback to env password
       console.error('DB error during login, using env fallback:', dbError)
-      const envPassword = process.env.ADMIN_PASSWORD || 'laredoute2024'
+      const envPassword = process.env.ADMIN_PASSWORD || 'Antoine@228'
       passwordMatches = password === envPassword
     }
 

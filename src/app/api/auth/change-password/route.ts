@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       currentPasswordMatches = currentPassword === adminUser.password
     } else {
       // Fallback to env variable
-      const envPassword = process.env.ADMIN_PASSWORD || 'laredoute2024'
+      const envPassword = process.env.ADMIN_PASSWORD || 'Antoine@228'
       currentPasswordMatches = currentPassword === envPassword
     }
 
