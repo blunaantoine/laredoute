@@ -68,11 +68,20 @@ export async function POST(request: NextRequest) {
     const sessionToken = generateSessionToken()
     const response = NextResponse.json({ success: true })
 
+    // Determine if we should use secure flag
+    // In production behind Caddy (reverse proxy), the internal connection is HTTP
+    // but the browser connects via HTTPS. We check x-forwarded-proto header.
+    const forwardedProto = request.headers.get('x-forwarded-proto')
+    const origin = request.headers.get('origin') || ''
+    const isSecure = forwardedProto === 'https' || origin.startsWith('https://') || process.env.NODE_ENV === 'production'
+    
+    console.log('[Login] Setting cookie - secure:', isSecure, 'forwardedProto:', forwardedProto, 'NODE_ENV:', process.env.NODE_ENV)
+    
     // Use a new cookie name with version to invalidate old sessions
     response.cookies.set('laredoute-admin-v2', sessionToken, {
       httpOnly: true,
       sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      secure: isSecure,
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: '/',
     })

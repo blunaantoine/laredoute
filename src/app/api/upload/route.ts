@@ -4,8 +4,19 @@ import path from 'path'
 import { existsSync } from 'fs'
 
 function checkAuth(request: NextRequest): NextResponse | null {
-  const authCookie = request.cookies.get('laredoute-admin-v2')
+  // Try standard cookie API first
+  let authCookie = request.cookies.get('laredoute-admin-v2')
+  
+  // Fallback: parse raw Cookie header manually (for standalone/reverse-proxy deployments)
   if (!authCookie || authCookie.value.length < 10) {
+    const rawCookieHeader = request.headers.get('cookie') || ''
+    const match = rawCookieHeader.match(/laredoute-admin-v2=([^;]+)/)
+    if (match && match[1] && match[1].length >= 10) {
+      console.log('[Auth] Cookie found via raw header fallback')
+      return null // Auth OK via fallback
+    }
+    
+    console.log('[Auth] No valid auth cookie found. Cookies:', rawCookieHeader.substring(0, 200))
     return NextResponse.json(
       { error: 'Non autorisé. Veuillez vous reconnecter.' },
       { status: 401 }
