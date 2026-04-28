@@ -21,7 +21,11 @@ interface Stats {
   }>
 }
 
-export default function DashboardTab() {
+interface DashboardTabProps {
+  onNavigate?: (tab: string) => void
+}
+
+export default function DashboardTab({ onNavigate }: DashboardTabProps) {
   const [stats, setStats] = useState<Stats>({
     totalProducts: 0,
     autoProducts: 0,
@@ -265,7 +269,7 @@ export default function DashboardTab() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <button className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-[#00A651]/30 hover:bg-[#00A651]/5 transition-all group">
+            <button onClick={() => onNavigate?.('products')} className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-[#00A651]/30 hover:bg-[#00A651]/5 transition-all group">
               <div className="w-10 h-10 rounded-lg bg-[#00A651]/10 flex items-center justify-center flex-shrink-0">
                 <Package className="size-5 text-[#00A651]" />
               </div>
@@ -276,7 +280,7 @@ export default function DashboardTab() {
               <ArrowRight className="size-4 text-gray-300 group-hover:text-[#00A651] transition-colors" />
             </button>
 
-            <button className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-sky-300/50 hover:bg-sky-50/50 transition-all group">
+            <button onClick={() => onNavigate?.('images')} className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-sky-300/50 hover:bg-sky-50/50 transition-all group">
               <div className="w-10 h-10 rounded-lg bg-sky-50 flex items-center justify-center flex-shrink-0">
                 <ImageIcon className="size-5 text-sky-500" />
               </div>
@@ -287,7 +291,7 @@ export default function DashboardTab() {
               <ArrowRight className="size-4 text-gray-300 group-hover:text-sky-500 transition-colors" />
             </button>
 
-            <button className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-amber-300/50 hover:bg-amber-50/50 transition-all group">
+            <button onClick={() => onNavigate?.('partners')} className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-amber-300/50 hover:bg-amber-50/50 transition-all group">
               <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
                 <Users className="size-5 text-amber-500" />
               </div>

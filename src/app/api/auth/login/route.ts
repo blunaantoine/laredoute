@@ -1,13 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { db } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { password } = body
 
-    const adminPassword = process.env.ADMIN_PASSWORD || 'laredoute2024'
+    if (!password) {
+      return NextResponse.json(
+        { success: false, error: 'Mot de passe requis' },
+        { status: 400 }
+      )
+    }
 
-    if (!password || password !== adminPassword) {
+    // Check database first for the admin user password
+    const adminUser = await db.user.findFirst({
+      where: { role: 'admin' },
+    })
+
+    let passwordMatches = false
+
+    if (adminUser) {
+      // Compare with stored password in DB
+      passwordMatches = password === adminUser.password
+    } else {
+      // Fallback to env variable (for first login before DB user exists)
+      const envPassword = process.env.ADMIN_PASSWORD || 'laredoute2024'
+      passwordMatches = password === envPassword
+    }
+
+    if (!passwordMatches) {
       return NextResponse.json(
         { success: false, error: 'Mot de passe incorrect' },
         { status: 401 }

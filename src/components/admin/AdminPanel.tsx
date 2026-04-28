@@ -8,6 +8,7 @@ import HomepageEditor from './HomepageEditor'
 import ProductManager from './ProductManager'
 import ImageManager from './ImageManager'
 import PartnerManager from './PartnerManager'
+import SettingsTab from './SettingsTab'
 import { Button } from '@/components/ui/button'
 import { X, Menu, ExternalLink } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
@@ -26,6 +27,7 @@ const tabMeta: Record<string, { label: string; description: string }> = {
   products: { label: 'Produits', description: 'Gérez votre catalogue de produits' },
   images: { label: 'Images', description: 'Gérez les images du site' },
   partners: { label: 'Partenaires', description: 'Gérez vos partenaires' },
+  settings: { label: 'Paramètres', description: 'Sécurité et configuration du compte' },
 }
 
 export default function AdminPanel({ isAuthenticated, onLogin, onLogout, onClose, onRefresh }: AdminPanelProps) {
@@ -48,7 +50,7 @@ export default function AdminPanel({ isAuthenticated, onLogin, onLogout, onClose
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardTab />
+        return <DashboardTab onNavigate={handleTabChange} />
       case 'homepage':
         return <HomepageEditor />
       case 'products':
@@ -57,8 +59,10 @@ export default function AdminPanel({ isAuthenticated, onLogin, onLogout, onClose
         return <ImageManager />
       case 'partners':
         return <PartnerManager />
+      case 'settings':
+        return <SettingsTab />
       default:
-        return <DashboardTab />
+        return <DashboardTab onNavigate={handleTabChange} />
     }
   }
 

@@ -1,7 +1,6 @@
 'use client'
 
-import { LayoutDashboard, Home, Package, Image as ImageIcon, Users, LogOut, X, ChevronRight } from 'lucide-react'
-import Image from 'next/image'
+import { LayoutDashboard, Home, Package, Image as ImageIcon, Users, LogOut, X, ChevronRight, Settings, Shield } from 'lucide-react'
 
 interface AdminSidebarProps {
   activeTab: string
@@ -19,9 +18,14 @@ const navItems = [
   { id: 'partners', label: 'Partenaires', icon: Users, section: 'content' },
 ]
 
+const settingsItems = [
+  { id: 'settings', label: 'Paramètres', icon: Settings, section: 'settings' },
+]
+
 const sections = [
   { id: 'main', label: '' },
   { id: 'content', label: 'CONTENU' },
+  { id: 'settings', label: 'SYSTÈME' },
 ]
 
 export default function AdminSidebar({ activeTab, onTabChange, onLogout, onClose, isMobile }: AdminSidebarProps) {
@@ -50,7 +54,7 @@ export default function AdminSidebar({ activeTab, onTabChange, onLogout, onClose
       {/* Navigation */}
       <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
         {sections.map((section) => {
-          const sectionItems = navItems.filter((item) => item.section === section.id)
+          const sectionItems = [...navItems, ...settingsItems].filter((item) => item.section === section.id)
           return (
             <div key={section.id}>
               {section.label && (
@@ -85,7 +89,7 @@ export default function AdminSidebar({ activeTab, onTabChange, onLogout, onClose
         <div className="px-3 py-2.5 mb-2">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-              <span className="text-xs font-semibold text-white/70">A</span>
+              <Shield className="size-4 text-white/70" />
             </div>
             <div>
               <p className="text-xs font-medium text-white/80">Administrateur</p>

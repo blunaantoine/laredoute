@@ -169,6 +169,19 @@ function SiteContent() {
     )
   }
 
+  // When admin mode is active, show the full admin panel as a dedicated page
+  if (showAdmin) {
+    return (
+      <AdminPanel
+        isAuthenticated={isAuthenticated}
+        onLogin={handleLogin}
+        onLogout={handleLogout}
+        onClose={() => setShowAdmin(false)}
+        onRefresh={fetchData}
+      />
+    )
+  }
+
   const renderPage = () => {
     switch (currentPage) {
       case 'accueil':
@@ -196,19 +209,6 @@ function SiteContent() {
         logoUrl={images['logo-main'] || '/logo-main.png'}
         onOpenAdmin={() => setShowAdmin(true)}
       />
-
-      {/* Admin panel overlay */}
-      {showAdmin && (
-        <div className="admin-panel-transition">
-          <AdminPanel
-            isAuthenticated={isAuthenticated}
-            onLogin={handleLogin}
-            onLogout={handleLogout}
-            onClose={() => setShowAdmin(false)}
-            onRefresh={fetchData}
-          />
-        </div>
-      )}
     </div>
   )
 }

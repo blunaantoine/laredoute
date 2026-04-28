@@ -420,6 +420,19 @@ export async function POST() {
     let productsCreated = 0
     let productsUpdated = 0
 
+    // Seed default admin user if not exists
+    const existingAdmin = await db.user.findFirst({ where: { role: 'admin' } })
+    if (!existingAdmin) {
+      await db.user.create({
+        data: {
+          email: 'admin@laredoutesarl.com',
+          name: 'Administrateur',
+          password: process.env.ADMIN_PASSWORD || 'laredoute2024',
+          role: 'admin',
+        },
+      })
+    }
+
     // Seed SiteContent entries
     for (const item of DEFAULT_CONTENTS) {
       const existing = await db.siteContent.findUnique({ where: { key: item.key } })
