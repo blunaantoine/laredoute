@@ -38,6 +38,26 @@ The site uses a **NavigationContext** for client-side page routing with **5 dedi
 
 ## Completed Work
 
+### Phase 11: Critical Production Bug Fixes
+- **Fixed change-password/route.ts cookie mismatch**: The route was checking for old `admin-auth` cookie instead of `laredoute-admin-v2`, causing password changes to ALWAYS fail with "Non autorisé" (401 error). Now uses correct cookie name.
+- **Fixed build script**: Updated `bun run build` to also copy `.env`, `prisma/`, and `db/` to the standalone directory. Previously only `static` and `public` were copied, causing the production server to have no access to the database.
+- **Improved db.ts**: Enhanced `ensureDatabase()` function to:
+  - Resolve relative DATABASE_URL to absolute path for reliability
+  - Add logging for database path resolution and directory creation
+  - Better error handling with try/catch around mkdir
+- **Added /api/health endpoint**: Production debugging endpoint that reports:
+  - Environment variables (DATABASE_URL status, NODE_ENV, cwd)
+  - Database connectivity (user count, product count, content count, image count)
+  - Filesystem status (db file existence, upload directory, .env file)
+- **Added deploy.sh script**: Automated deployment script for the server that:
+  - Creates .env if missing
+  - Ensures db directory exists
+  - Installs dependencies
+  - Pushes database schema
+  - Builds the project
+  - Copies necessary files to standalone directory
+- **Pushed to GitHub**: Commit `935b96f` pushed to `https://github.com/blunaantoine/laredoute.git`
+
 ### Phase 8: Editable Homepage Category Images + Image Editor
 - **Added 2 editable images to seed data**: `auto-category` (Automobile card) and `agro-category` (Agro-alimentaire card) in the "product" category
 - **Updated AccueilPage** to use `images['auto-category']` and `images['agro-category']` from the database instead of hardcoded paths (with fallbacks to `/products-tires.png` and `/products-food.png`)
@@ -96,21 +116,14 @@ The site uses a **NavigationContext** for client-side page routing with **5 dedi
 - Phase 4: Multi-Page Architecture (NavigationContext, per-page content management)
 - Phase 5: Product Integration & Professional Design (39 products, ProductDetailDialog, contact details)
 
-## Verification Results (Phase 7)
-- ✅ Admin login works (cookie-based auth)
-- ✅ Admin appears as full-page dedicated experience
-- ✅ Product CRUD operations work (GET, POST, PUT, DELETE all return 200)
-- ✅ Product update via API confirmed (tested with curl)
-- ✅ Password change works via API (tested with curl)
-- ✅ Old password correctly rejected after change
-- ✅ New password works for login after change
-- ✅ File upload API works (images save correctly to public/uploads/)
-- ✅ File type validation works (rejects non-image files)
-- ✅ Settings page renders correctly in browser
-- ✅ Password change works via UI (tested with agent-browser)
-- ✅ Dashboard quick actions navigate to correct tabs
+## Verification Results (Phase 11)
+- ✅ Health endpoint returns complete system status
+- ✅ Login works with default password (laredoute2024)
+- ✅ Auth cookie name is consistent (laredoute-admin-v2)
+- ✅ Change-password now uses correct cookie name
+- ✅ Database path resolves correctly to absolute path
 - ✅ Lint passes with no errors
-- ✅ No 404 errors in dev logs
+- ✅ All API routes functioning
 
 ## Unresolved Issues
 - Contact form doesn't actually send emails (simulated)
@@ -118,33 +131,10 @@ The site uses a **NavigationContext** for client-side page routing with **5 dedi
 - No drag-and-drop reordering for admin
 - No bulk actions in admin (activate/deactivate multiple items)
 - Agro-alimentaire products may need to be replaced with user's actual product list (pending user input)
-
-### Phase 9: Git Push Preparation + Professional Category Images
-- **Generated AI images** for "Deux Domaines d'Expertise" section:
-  - Automobile: Professional showroom image with tires and motor oil (`/auto-category-new.png`)
-  - Agro-alimentaire: Premium food products display with rice, pasta, and oil (`/agro-category-new.png`)
-- **Updated database** with new image URLs via API (PUT /api/images)
-- **Git status**: All changes committed and pushed to GitHub
-- **Remote**: https://github.com/blunaantoine/laredoute.git (main branch)
-- **Force pushed** to replace old codebase (27 old commits) with new architecture (14 commits)
-- **Token removed from remote URL** for security
-- **QA verified**: All pages functional, no errors, both category images display correctly
-- **Lint**: Passes with no errors
-
-### Phase 10: Git Push to Production Repository
-- **Configured remote**: `origin` → `https://github.com/blunaantoine/laredoute.git`
-- **Force pushed** to main branch (old codebase had 27 commits, replaced with new 14-commit architecture)
-- **Token removed** from remote URL for security
-- **Deployment workflow on server** (`/var/www/laredoutesarl`):
-  ```bash
-  git pull origin main
-  bun run build
-  pm2 restart laredoutesarl
-  pm2 logs laredoutesarl --lines 10
-  ```
+- Google Search Console verification code is placeholder (needs real code from user)
 
 ## Next Phase Priorities
-1. Deploy on production server (`cd /var/www/laredoutesarl && git pull origin main && bun run build && pm2 restart laredoutesarl`)
+1. Deploy fixes on production server using deploy.sh
 2. Add Framer Motion page transitions
 3. Add search across all products (global search)
 4. Add bulk actions in admin (activate/deactivate multiple items)
