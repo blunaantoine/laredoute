@@ -176,7 +176,11 @@ function SiteContent() {
         isAuthenticated={isAuthenticated}
         onLogin={handleLogin}
         onLogout={handleLogout}
-        onClose={() => setShowAdmin(false)}
+        onClose={() => {
+          setShowAdmin(false)
+          // Refresh site data when admin closes so changes are visible
+          fetchData()
+        }}
         onRefresh={fetchData}
       />
     )

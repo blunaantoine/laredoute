@@ -43,8 +43,14 @@ export default function AdminPanel({ isAuthenticated, onLogin, onLogout, onClose
     setMobileOpen(false)
   }
 
+  const handleClose = useCallback(() => {
+    onClose()
+    // Refresh site data so admin changes are visible
+    onRefresh?.()
+  }, [onClose, onRefresh])
+
   if (!isAuthenticated) {
-    return <AdminLogin onLogin={handleLogin} onBack={onClose} />
+    return <AdminLogin onLogin={handleLogin} onBack={handleClose} />
   }
 
   const renderContent = () => {
@@ -76,7 +82,7 @@ export default function AdminPanel({ isAuthenticated, onLogin, onLogout, onClose
           activeTab={activeTab}
           onTabChange={handleTabChange}
           onLogout={onLogout}
-          onClose={onClose}
+          onClose={handleClose}
         />
       </div>
 
@@ -97,7 +103,7 @@ export default function AdminPanel({ isAuthenticated, onLogin, onLogout, onClose
                   activeTab={activeTab}
                   onTabChange={handleTabChange}
                   onLogout={onLogout}
-                  onClose={onClose}
+                  onClose={handleClose}
                   isMobile
                 />
               </SheetContent>
@@ -113,7 +119,7 @@ export default function AdminPanel({ isAuthenticated, onLogin, onLogout, onClose
             <Button
               variant="outline"
               size="sm"
-              onClick={onClose}
+              onClick={handleClose}
               className="text-gray-600 gap-1.5"
             >
               <ExternalLink className="size-3.5" />
@@ -122,7 +128,7 @@ export default function AdminPanel({ isAuthenticated, onLogin, onLogout, onClose
             <Button
               variant="ghost"
               size="icon"
-              onClick={onClose}
+              onClick={handleClose}
               className="lg:hidden text-gray-500"
             >
               <X className="size-5" />
