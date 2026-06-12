@@ -7,6 +7,20 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   reactStrictMode: false,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'laredoutesarl.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.laredoutesarl.com',
+      },
+    ],
+    // Allow unoptimized images for uploaded files served via /api/files/
+    unoptimized: false,
+  },
 };
 
 export default nextConfig;

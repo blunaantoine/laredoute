@@ -9,9 +9,7 @@ export async function GET() {
     timestamp: new Date().toISOString(),
     env: {
       NODE_ENV: process.env.NODE_ENV,
-      DATABASE_URL: process.env.DATABASE_URL || 'NOT SET',
       ADMIN_PASSWORD: process.env.ADMIN_PASSWORD ? '***set***' : 'NOT SET',
-      cwd: process.cwd(),
     },
   }
 
@@ -22,7 +20,6 @@ export async function GET() {
     const contentCount = await db.siteContent.count()
     const imageCount = await db.siteImage.count()
 
-    // Get admin user info (without exposing password)
     const adminUser = await db.user.findFirst({ where: { role: 'admin' } })
 
     health.database = {
@@ -32,7 +29,6 @@ export async function GET() {
       contents: contentCount,
       images: imageCount,
       adminExists: !!adminUser,
-      adminEmail: adminUser?.email || 'none',
     }
   } catch (error) {
     health.database = {
@@ -41,7 +37,7 @@ export async function GET() {
     }
   }
 
-  // Check file system
+  // Check file system - without exposing sensitive paths
   try {
     const dbUrlValue = process.env.DATABASE_URL || ''
     const dbPath = dbUrlValue.replace('file:', '')
@@ -49,24 +45,18 @@ export async function GET() {
       ? path.resolve(process.cwd(), dbPath)
       : dbPath
     const dbExists = fs.existsSync(resolvedPath)
-    const dbDir = path.dirname(resolvedPath)
-    const dirExists = fs.existsSync(dbDir)
     let dbSize = 0
     if (dbExists) {
       try { dbSize = fs.statSync(resolvedPath).size } catch { /* ignore */ }
     }
 
     health.filesystem = {
-      dbPath: resolvedPath,
       dbExists,
       dbSizeBytes: dbSize,
-      dbDir,
-      dirExists,
     }
 
     // Check upload directory
     const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-    health.filesystem.uploadDir = uploadDir
     health.filesystem.uploadDirExists = fs.existsSync(uploadDir)
   } catch (error) {
     health.filesystem = {
@@ -74,18 +64,11 @@ export async function GET() {
     }
   }
 
-  // Check .env file
+  // Check .env file - only report existence, not content
   try {
     const envPath = path.join(process.cwd(), '.env')
-    const envExists = fs.existsSync(envPath)
-    let envContent = ''
-    if (envExists) {
-      envContent = fs.readFileSync(envPath, 'utf-8').trim()
-    }
     health.envFile = {
-      path: envPath,
-      exists: envExists,
-      content: envContent,
+      exists: fs.existsSync(envPath),
     }
   } catch {
     health.envFile = { exists: false }

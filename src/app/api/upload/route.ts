@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
+import { writeFile, mkdir, symlink, access } from 'fs/promises'
 import path from 'path'
 import { existsSync } from 'fs'
 
@@ -76,8 +76,31 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes)
     await writeFile(filePath, buffer)
 
-    // Return the URL path
-    const url = `/uploads/${category}/${filename}`
+    // CRITICAL FIX: In standalone mode, the server serves static files from
+    // .next/standalone/public/ but uploads go to the project root's public/uploads/.
+    // We must also copy/symlink the file to the standalone public directory.
+    try {
+      const standaloneUploadDir = path.join(process.cwd(), '.next', 'standalone', 'public', 'uploads', category)
+      if (!existsSync(standaloneUploadDir)) {
+        await mkdir(standaloneUploadDir, { recursive: true })
+      }
+      const standaloneFilePath = path.join(standaloneUploadDir, filename)
+      // Try symlink first (more efficient), fall back to copy
+      try {
+        await symlink(filePath, standaloneFilePath)
+      } catch {
+        // Symlink failed (maybe cross-device), copy the file instead
+        await writeFile(standaloneFilePath, buffer)
+      }
+    } catch (syncError) {
+      // Non-critical: if standalone sync fails, the file is still accessible
+      // via /api/files/ route as a fallback
+      console.error('[Upload API] Warning: could not sync to standalone dir:', syncError)
+    }
+
+    // Return the URL path - use /api/files/ route for reliable serving
+    // (works in both dev and standalone production mode)
+    const url = `/api/files/${category}/${filename}`
 
     return NextResponse.json({
       success: true,

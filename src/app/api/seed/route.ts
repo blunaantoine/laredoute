@@ -1,5 +1,22 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+
+// Auth check - seed API should be protected
+function checkAuth(request: NextRequest): NextResponse | null {
+  let authCookie = request.cookies.get('laredoute-admin-v2')
+  if (!authCookie || authCookie.value.length < 10) {
+    const rawCookieHeader = request.headers.get('cookie') || ''
+    const match = rawCookieHeader.match(/laredoute-admin-v2=([^;]+)/)
+    if (match && match[1] && match[1].length >= 10) {
+      return null
+    }
+    return NextResponse.json(
+      { error: 'Non autorisé. Veuillez vous reconnecter.' },
+      { status: 401 }
+    )
+  }
+  return null
+}
 
 const DEFAULT_CONTENTS = [
   // Homepage content
@@ -415,7 +432,10 @@ const DEFAULT_PRODUCTS = [
   },
 ]
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  const authError = checkAuth(request)
+  if (authError) return authError
+
   try {
     let contentCreated = 0
     let imagesCreated = 0

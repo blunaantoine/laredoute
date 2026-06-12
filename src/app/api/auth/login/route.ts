@@ -69,11 +69,12 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ success: true })
 
     // Determine if we should use secure flag
-    // In production behind Caddy (reverse proxy), the internal connection is HTTP
-    // but the browser connects via HTTPS. We check x-forwarded-proto header.
+    // Only use Secure flag if the connection is actually HTTPS
+    // Check x-forwarded-proto header (set by reverse proxy like Nginx/Caddy)
+    // DO NOT automatically set Secure in production - it breaks HTTP-only servers
     const forwardedProto = request.headers.get('x-forwarded-proto')
     const origin = request.headers.get('origin') || ''
-    const isSecure = forwardedProto === 'https' || origin.startsWith('https://') || process.env.NODE_ENV === 'production'
+    const isSecure = forwardedProto === 'https' || origin.startsWith('https://')
     
     console.log('[Login] Setting cookie - secure:', isSecure, 'forwardedProto:', forwardedProto, 'NODE_ENV:', process.env.NODE_ENV)
     

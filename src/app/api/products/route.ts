@@ -109,9 +109,18 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    // Only allow updating valid product fields (security: prevent setting createdAt, etc.)
+    const allowedFields = ['category', 'subcategory', 'title', 'description', 'imageUrl', 'variants', 'order', 'isActive']
+    const filteredData: Record<string, unknown> = {}
+    for (const key of allowedFields) {
+      if (key in data) {
+        filteredData[key] = data[key]
+      }
+    }
+
     const updated = await db.product.update({
       where: { id },
-      data,
+      data: filteredData,
     })
 
     return NextResponse.json(updated)
