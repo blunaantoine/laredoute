@@ -433,16 +433,21 @@ const DEFAULT_PRODUCTS = [
 ]
 
 export async function POST(request: NextRequest) {
-  const authError = checkAuth(request)
-  if (authError) return authError
+  // Allow seed without auth ONLY if no admin user exists yet (first-time setup)
+  // This prevents a deadlock where: seed needs auth → auth needs admin user → admin user is created by seed
+  const existingAdmin = await db.user.findFirst({ where: { role: 'admin' } }).catch(() => null)
+  if (existingAdmin) {
+    // Admin exists, require authentication
+    const authError = checkAuth(request)
+    if (authError) return authError
+  }
 
   try {
     let contentCreated = 0
     let imagesCreated = 0
     let productsCreated = 0
 
-    // Seed default admin user if not exists
-    const existingAdmin = await db.user.findFirst({ where: { role: 'admin' } })
+    // Seed default admin user if not exists (reuse the check from above)
     if (!existingAdmin) {
       await db.user.create({
         data: {

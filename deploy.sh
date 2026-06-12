@@ -12,6 +12,7 @@ echo "[1/7] Configuring .env..."
 cat > .env << 'EOF'
 DATABASE_URL=file:/var/www/laredoutesarl/db/custom.db
 ADMIN_PASSWORD=Antoine@228
+NEXT_PUBLIC_SITE_URL=https://laredoutesarl.com
 EOF
 echo "  ✅ .env configured with absolute DB path"
 

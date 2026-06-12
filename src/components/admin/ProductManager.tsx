@@ -137,6 +137,12 @@ export default function ProductManager() {
         }
       }
 
+      // Determine the next order number for this category
+      const existingInCategory = products.filter(p => p.category === form.subcategory)
+      const nextOrder = existingInCategory.length > 0
+        ? Math.max(...existingInCategory.map(p => p.order)) + 1
+        : 1
+
       const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -148,7 +154,8 @@ export default function ProductManager() {
           description: form.description || null,
           imageUrl: imageUrl || null,
           variants: form.variants || null,
-          order: 0,
+          order: nextOrder,
+          isActive: true,
         }),
       })
 
