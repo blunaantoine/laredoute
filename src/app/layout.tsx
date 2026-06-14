@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     icon: "/logo-main.png",
   },
   verification: {
-    google: "la-redoute-verification-code", // Remplacez par votre code Google Search Console
+    google: "bHZGZJOWaUOV81ZRttuXMinynmqr_WoTotmUa3qLWI0",
   },
   openGraph: {
     title: "LA REDOUTE SARL-U - Distribution Professionnelle au Togo",
