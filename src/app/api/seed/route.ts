@@ -430,6 +430,92 @@ const DEFAULT_PRODUCTS = [
     order: 22,
     isActive: true,
   },
+
+  // === Dufe Lub - Huiles Moteurs ===
+  {
+    category: 'huiles',
+    subcategory: 'automobile',
+    title: 'Dufe Lub Boost Protect',
+    description: 'Huile moteur Dufe Lub - Boost & Protect The Engine Lube. Protection renforcée du moteur pour une performance optimale.',
+    imageUrl: '/api/files/products/IMG-20260530-WA0010.jpg',
+    variants: null,
+    order: 16,
+    isActive: true,
+  },
+  {
+    category: 'huiles',
+    subcategory: 'automobile',
+    title: 'Dufe Lub Super Ultra-5 Motor Oil',
+    description: 'Huile moteur multi-grade Dufe Lub Ultra-5. Formule avancée pour une protection supérieure du moteur.',
+    imageUrl: '/api/files/products/IMG-20260530-WA0014.jpg',
+    variants: null,
+    order: 17,
+    isActive: true,
+  },
+  {
+    category: 'huiles',
+    subcategory: 'automobile',
+    title: 'Dufe Lub Shift Power ATF',
+    description: 'Huile de transmission automatique Dufe Lub Shift Power. Compatible multi-véhicule DEXRON.',
+    imageUrl: '/api/files/products/IMG-20260530-WA0015.jpg',
+    variants: null,
+    order: 18,
+    isActive: true,
+  },
+  {
+    category: 'huiles',
+    subcategory: 'automobile',
+    title: 'Dufe Lub Super Ultra-5 SAE 20W-50',
+    description: 'Huile moteur Dufe Lub Ultra-5 SAE 20W-50. Protection maximale pour moteurs à forte sollicitation.',
+    imageUrl: '/api/files/products/IMG-20260530-WA0016.jpg',
+    variants: null,
+    order: 19,
+    isActive: true,
+  },
+  {
+    category: 'huiles',
+    subcategory: 'automobile',
+    title: 'Dufe Lub Super Ultra-10 Motor Oil',
+    description: 'Huile moteur Dufe Lub Ultra-10 Low Mileage. Formule spéciale pour moteurs à faible kilométrage.',
+    imageUrl: '/api/files/products/IMG-20260530-WA0017.jpg',
+    variants: null,
+    order: 20,
+    isActive: true,
+  },
+
+  // === Dufe Lub - Accessoires ===
+  {
+    category: 'accessoires',
+    subcategory: 'automobile',
+    title: 'Dufe Lub Greaser',
+    description: 'Graisse automobile Dufe Lub. Lubrification haute performance pour pièces mécaniques.',
+    imageUrl: '/api/files/products/IMG-20260530-WA0012.jpg',
+    variants: null,
+    order: 28,
+    isActive: true,
+  },
+  {
+    category: 'accessoires',
+    subcategory: 'automobile',
+    title: 'Dufe Lub DOT 3 Super Heavy Duty',
+    description: 'Liquide de frein DOT 3 Super Heavy Duty. Fluidité et résistance aux hautes températures pour une sécurité maximale.',
+    imageUrl: '/api/files/products/IMG-20260530-WA0013.jpg',
+    variants: null,
+    order: 29,
+    isActive: true,
+  },
+
+  // === Dufe Lub - Huile Alimentaire ===
+  {
+    category: 'huiles-alimentaires',
+    subcategory: 'agroalimentaire',
+    title: 'Huile Alimentaire Végétale',
+    description: 'Huile végétale alimentaire de qualité supérieure, idéale pour la cuisine quotidienne.',
+    imageUrl: '/api/files/products/IMG-20260530-WA0011.jpg',
+    variants: null,
+    order: 23,
+    isActive: true,
+  },
 ]
 
 export async function POST(request: NextRequest) {
