@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Loader2, Plus, Pencil, Trash2, Search, Car, Wheat, SlidersHorizontal, Package } from 'lucide-react'
+import { Loader2, Plus, Pencil, Trash2, Search, Car, Wheat, SlidersHorizontal, Package, Ban, XCircle } from 'lucide-react'
 import Image from 'next/image'
 import { useToast } from '@/hooks/use-toast'
 
@@ -224,15 +224,33 @@ export default function ProductManager() {
   }
 
   const handleDeleteProduct = async (id: string) => {
-    if (!confirm('Supprimer ce produit ?')) return
+    if (!confirm('Désactiver ce produit ? Il sera masqué du site mais conservé en base de données.')) return
     try {
       const res = await fetch(`/api/products?id=${id}`, { method: 'DELETE', credentials: 'include' })
       if (res.ok) {
-        toast({ title: 'Produit supprimé' })
+        toast({ title: 'Produit désactivé', description: 'Le produit a été désactivé. Utilisez la suppression définitive pour le retirer complètement.' })
         fetchProducts()
       }
     } catch {
-      toast({ title: 'Erreur', description: 'Impossible de supprimer.', variant: 'destructive' })
+      toast({ title: 'Erreur', description: 'Impossible de désactiver.', variant: 'destructive' })
+    }
+  }
+
+  const handlePermanentDelete = async (id: string) => {
+    if (!confirm('⚠️ SUPPRESSION DÉFINITIVE !\n\nCe produit sera définitivement supprimé de la base de données et son image sera supprimée.\n\nCette action est IRRÉVERSIBLE. Continuer ?')) return
+    // Second confirmation for safety
+    if (!confirm('Dernière chance : Êtes-vous absolument sûr de vouloir supprimer définitivement ce produit ?')) return
+    try {
+      const res = await fetch(`/api/products?id=${id}&permanent=true`, { method: 'DELETE', credentials: 'include' })
+      if (res.ok) {
+        toast({ title: 'Produit supprimé définitivement', description: 'Le produit et son image ont été définitivement supprimés.' })
+        fetchProducts()
+      } else {
+        const data = await res.json().catch(() => ({}))
+        toast({ title: 'Erreur', description: data.error || 'Impossible de supprimer définitivement.', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Erreur', description: 'Impossible de supprimer définitivement.', variant: 'destructive' })
     }
   }
 
@@ -453,6 +471,7 @@ export default function ProductManager() {
             products={getFilteredProducts(autoProducts)}
             onEdit={openEditDialog}
             onDelete={handleDeleteProduct}
+            onPermanentDelete={handlePermanentDelete}
             onToggleActive={handleToggleActive}
           />
         </TabsContent>
@@ -462,6 +481,7 @@ export default function ProductManager() {
             products={getFilteredProducts(agroProducts)}
             onEdit={openEditDialog}
             onDelete={handleDeleteProduct}
+            onPermanentDelete={handlePermanentDelete}
             onToggleActive={handleToggleActive}
           />
         </TabsContent>
@@ -556,11 +576,13 @@ function ProductTable({
   products,
   onEdit,
   onDelete,
+  onPermanentDelete,
   onToggleActive,
 }: {
   products: Product[]
   onEdit: (product: Product) => void
   onDelete: (id: string) => void
+  onPermanentDelete: (id: string) => void
   onToggleActive: (product: Product) => void
 }) {
   if (products.length === 0) {
@@ -654,17 +676,30 @@ function ProductTable({
                 variant="ghost"
                 className="h-8 w-8 text-gray-400 hover:text-gray-700"
                 onClick={() => onEdit(product)}
+                title="Modifier"
               >
                 <Pencil className="size-3.5" />
               </Button>
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-8 w-8 text-gray-400 hover:text-red-600"
+                className="h-8 w-8 text-gray-400 hover:text-orange-600"
                 onClick={() => onDelete(product.id)}
+                title="Désactiver"
               >
-                <Trash2 className="size-3.5" />
+                <Ban className="size-3.5" />
               </Button>
+              {!product.isActive && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 text-gray-400 hover:text-red-600"
+                  onClick={() => onPermanentDelete(product.id)}
+                  title="Supprimer définitivement"
+                >
+                  <XCircle className="size-3.5" />
+                </Button>
+              )}
             </div>
           </div>
         ))}

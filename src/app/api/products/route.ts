@@ -140,6 +140,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
+    const permanent = searchParams.get('permanent') === 'true'
 
     if (!id) {
       return NextResponse.json(
@@ -148,13 +149,57 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    // Soft delete
+    if (permanent) {
+      // Hard delete: remove from database and clean up image file
+      const product = await db.product.findUnique({ where: { id } })
+      if (!product) {
+        return NextResponse.json(
+          { error: 'Produit non trouvé' },
+          { status: 404 }
+        )
+      }
+
+      // Try to delete the image file from disk
+      if (product.imageUrl) {
+        try {
+          const { unlink } = await import('fs/promises')
+          const { existsSync } = await import('fs')
+          const path = await import('path')
+
+          // Image URL format: /api/files/category/filename
+          // File location: public/uploads/category/filename
+          const urlPath = product.imageUrl.replace('/api/files/', '')
+          const filePath = path.join(process.cwd(), 'public', 'uploads', urlPath)
+          if (existsSync(filePath)) {
+            await unlink(filePath)
+            console.log('[Products API] Deleted image file:', filePath)
+          }
+
+          // Also try to remove from standalone directory
+          const standalonePath = path.join(process.cwd(), '.next', 'standalone', 'public', 'uploads', urlPath)
+          if (existsSync(standalonePath)) {
+            await unlink(standalonePath)
+            console.log('[Products API] Deleted standalone image file:', standalonePath)
+          }
+        } catch (imgError) {
+          // Non-critical: image cleanup failed, but product is still deleted from DB
+          console.error('[Products API] Warning: could not delete image file:', imgError)
+        }
+      }
+
+      // Permanently delete from database
+      await db.product.delete({ where: { id } })
+      console.log('[Products API] Permanently deleted product:', id)
+      return NextResponse.json({ success: true, permanent: true })
+    }
+
+    // Soft delete (default)
     await db.product.update({
       where: { id },
       data: { isActive: false },
     })
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, permanent: false })
   } catch (error) {
     console.error('[Products API] DELETE error:', error)
     return NextResponse.json(
